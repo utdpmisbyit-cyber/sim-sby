@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Services\PengirimanDarahExternalService;
 use App\Models\PengirimanDarahExternal;
 use Illuminate\Http\Request;
+use App\Models\JenisBiaya;
 use Illuminate\Http\JsonResponse;
 use Yajra\DataTables\Facades\DataTables;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class PengirimanDarahExternalController extends Controller
 {
@@ -45,7 +47,27 @@ class PengirimanDarahExternalController extends Controller
 
         return response()->json(['data' => $data]);
     }
+     public function getJenisBiaya()
+    {
+        try {
 
+            $data = $this->service->getJenisBiaya();
+
+            return response()->json([
+                'success' => true,
+                'data' => $data
+            ]);
+
+        } catch (\Exception $e) {
+
+            Log::error('Error getJenisBiaya : '.$e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'data' => []
+            ]);
+        }
+    }
     public function getPermintaan(Request $request): JsonResponse
     {
         $request->validate(['no_permintaan' => 'required|string']);
@@ -100,7 +122,7 @@ class PengirimanDarahExternalController extends Controller
             'tanggal_kirim'         => 'required|date',
             'petugas'               => 'required|string',
             'petugas_kode'          => 'required|string',
-            'jenis_biaya'           => 'required|in:Dropping,Konfalesen,BPJS,ASURASI',
+            'jenis_biaya'           => 'required|string',
             'dropping'              => 'nullable|in:AMBIL_SENDIRI,DIANTAR,KURIR',
             'suhu_kirim'            => 'nullable|numeric',
             'details'               => 'required|array|min:1',

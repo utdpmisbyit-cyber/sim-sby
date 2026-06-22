@@ -6,6 +6,7 @@ use App\Models\JenisBiaya;
 use App\Models\PelayananDarah;
 use App\Models\PelayananDarahDetail;
 use App\Models\PemberianDarah;
+use App\Models\ServiceCost;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
@@ -27,46 +28,78 @@ class PelayananDarahService
         return $prefix . str_pad($seq, 4, '0', STR_PAD_LEFT);
     }
 
-   
+    /**
+     * Scan no_fpup / no_pemberian → kembalikan data pasien + detail darah
+     * dengan harga_satuan otomatis dari tabel service_costs.
+     */
     public function scanPemberian(string $keyword): ?array
     {
-        // 1. Cari pemberian_darah + eager load relasi yang dibutuhkan
+        $keyword = trim($keyword);
+
+        // 1. Cari pemberian_darah + eager load relasi yang dibutuhkan (case-insensitive)
         $pemberian = PemberianDarah::with([
                 'detail',           // pemberian_darah_detail  (relasi di model PemberianDarah)
                 'permintaanFpup',   // permintaan_fpup
             ])
-            ->where('no_fpup', $keyword)
-            ->orWhere('no_pemberian', $keyword)
+            ->where(function ($q) use ($keyword) {
+                $q->whereRaw('LOWER(no_fpup) = ?', [mb_strtolower($keyword)])
+                  ->orWhereRaw('LOWER(no_pemberian) = ?', [mb_strtolower($keyword)]);
+            })
             ->first();
 
         if (! $pemberian) {
             return null;
         }
 
-        // 2. Ambil data permintaan_fpup (informasi pasien & RS)
-        $fpup = $pemberian->permintaanFpup; // nullable
+        // 2. Ambil data permintaan_fpup (informasi pasien & RS) — nullable
+        $fpup = $pemberian->permintaanFpup;
 
-        // 3. Ambil semua jenis_biaya untuk dropdown
-        $jenisBiayaList = JenisBiaya::orderBy('nama')
-            ->get(['id', 'kode', 'nama'])
-            ->toArray();
+        // 3. Ambil semua jenis_biaya untuk dropdown (di-trim karena data 'nama' di DB
+        //    sering tercemar \r\n / spasi tersembunyi dari import lama)
+        $jenisBiayaList = $this->getJenisBiayaList();
 
-        // 4. Susun detail baris dari pemberian_darah_detail
-        $details = $pemberian->detail->map(function ($d) {
+        // 4. Nama jenis biaya — jadi acuan pencarian harga di service_costs
+        //    Di-trim supaya konsisten dengan $jenisBiayaList (lihat poin 3) dan
+        //    supaya <select> di frontend bisa match persis dengan opsinya.
+        $jnsBiayaNama = trim(
+            $fpup?->jenisBiaya?->nama
+                ?? $fpup?->jns_biaya
+                ?? $pemberian->jns_biaya
+                ?? ''
+        ) ?: null;
+
+        // 4b. Jenis RS (Pemerintah/Swasta) — dipakai bareng jns_biaya untuk cari
+        //     harga di service_costs. PENTING: harga di tabel service_costs
+        //     ditentukan oleh kombinasi (Jenis RS × Jenis Biaya), BUKAN oleh
+        //     jenis darah (WB/PRC/dst) — lihat kolom 'jenis' di service_costs
+        //     yang isinya "Pemerintah"/"Swasta", bukan tipe darah.
+        $jenisRs = trim($fpup?->jenis_rs ?? $pemberian->jenis_rs ?? '') ?: null;
+
+        // 4c. Harga otomatis — SATU nilai untuk seluruh pelayanan ini, karena
+        //     biayanya per kombinasi RS+biaya, sama untuk semua baris darah.
+        $hargaOtomatis = $this->getHargaSatuan($jenisRs, $jnsBiayaNama);
+
+        // 5. Susun detail baris dari pemberian_darah_detail + harga otomatis
+        $details = $pemberian->detail->map(function ($d) use ($hargaOtomatis) {
             return [
-                'id'                       => $d->id,  // pemberian_darah_detail_id
-                'pemberian_darah_detail_id'=> $d->id,
-                'no_stok'                  => $d->no_stok,
-                'jns_darah'                => $d->jns_darah,
-                'gol'                      => $d->gol,
-                'rhesus'                   => $d->rhesus,
-                'jumlah'                   => $d->jumlah ?? 1,
-                'cc'                       => $d->cc,
-                'harga_satuan'             => (float) ($d->harga_satuan ?? 0),
+                'id'                        => $d->id,
+                'pemberian_darah_detail_id' => $d->id,
+                'no_stok'                   => $d->no_stok,
+                'jns_darah'                 => $d->jns_darah,
+                'gol'                       => $d->gol,
+                'rhesus'                    => $d->rhesus,
+                'jumlah'                    => $d->jumlah ?? 1,
+                'cc'                        => $d->cc,
+                // Harga sama untuk semua baris (per kombinasi Jenis RS + Jenis Biaya);
+                // fallback ke harga di detail kalau tidak ketemu di service_costs
+                'harga_satuan'              => $hargaOtomatis > 0
+                                                    ? $hargaOtomatis
+                                                    : (float) ($d->harga_satuan ?? 0),
             ];
         })->values()->toArray();
 
-        // 5. Susun respons — prioritaskan permintaan_fpup untuk data pasien & RS
+        // 6. Susun respons — prioritaskan permintaan_fpup untuk data pasien & RS
+        //    Gunakan null-safe operator (?->) supaya tidak error saat $fpup null.
         return [
             // ── Identitas pemberian ──────────────────────────────────────────
             'id'             => $pemberian->id,
@@ -74,40 +107,111 @@ class PelayananDarahService
             'no_pemberian'   => $pemberian->no_pemberian,
 
             // ── Data pasien (dari permintaan_fpup jika ada, fallback ke pemberian_darah) ──
-            'nama_pasien'    => $fpup->nama_os    ?? $pemberian->nama_pasien   ?? null,
-            'no_register'    => $fpup->no_register ?? null,
-            'golongan_darah' => $this->parseGol($fpup->gol_rh_os ?? $pemberian->gol_rh_pasien ?? null),
-            'rhesus'         => $this->parseRhesus($fpup->gol_rh_os ?? $pemberian->gol_rh_pasien ?? null),
-            'alamat_os'      => $fpup->alamat_os  ?? null,
+            'nama_pasien'    => $fpup?->nama_os    ?? $pemberian->nama_pasien   ?? null,
+            'no_register'    => $fpup?->no_register ?? null,
+            'golongan_darah' => $this->parseGol($fpup?->gol_rh_os ?? $pemberian->gol_rh_pasien ?? null),
+            'rhesus'         => $this->parseRhesus($fpup?->gol_rh_os ?? $pemberian->gol_rh_pasien ?? null),
+            'alamat_os'      => $fpup?->alamat_os  ?? null,
 
             // ── Data RS (dari permintaan_fpup jika ada, fallback ke pemberian_darah) ──
-            'nama_rs'        => $fpup->nama_rs    ?? $pemberian->nama_rs    ?? null,
-            'kode_rs'        => $fpup->kode_rs    ?? $pemberian->kode_rs    ?? null,
-            'jenis_rs'       => $fpup->jenis_rs   ?? $pemberian->jenis_rs   ?? null,
-            'bagian_rs'      => $fpup->bagian      ?? null,   // kolom 'bagian' di permintaan_fpup
-            'kelas_rawat'    => $fpup->kelas_rawat ?? $pemberian->kelas_rawat ?? null,
-            'nama_dokter'    => $fpup->nama_dokter ?? $pemberian->nama_dokter ?? null,
+            'nama_rs'        => $fpup?->nama_rs    ?? $pemberian->nama_rs    ?? null,
+            'kode_rs'        => $fpup?->kode_rs    ?? $pemberian->kode_rs    ?? null,
+            'jenis_rs'       => $fpup?->jenis_rs   ?? $pemberian->jenis_rs   ?? null,
+            'bagian_rs'      => $fpup?->bagian      ?? null,   // kolom 'bagian' di permintaan_fpup
+            'kelas_rawat'    => $fpup?->kelas_rawat ?? $pemberian->kelas_rawat ?? null,
+            'nama_dokter'    => $fpup?->nama_dokter ?? $pemberian->nama_dokter ?? null,
 
             // ── Pembayaran ────────────────────────────────────────────────────
-            'cara_bayar'     => $fpup->cara_bayar  ?? $pemberian->cara_pembayaran ?? null,
-            // jns_biaya sebagai teks (nama dari jenis_biaya jika ada relasi)
-            'jns_biaya'      => $fpup->jenisBiaya->nama ?? $fpup->jns_biaya ?? $pemberian->jns_biaya ?? null,
+            'cara_bayar'     => $fpup?->cara_bayar  ?? $pemberian->cara_pembayaran ?? null,
+            'jns_biaya'      => $jnsBiayaNama,
 
             // ── Dropdown jenis biaya ──────────────────────────────────────────
             'jenis_biaya_list' => $jenisBiayaList,
 
-            // ── Detail baris darah ────────────────────────────────────────────
+            // ── Detail baris darah (sudah berisi harga_satuan otomatis) ───────
             'details'        => $details,
         ];
     }
 
     /**
+     * Bersihkan kolom dari karakter tersembunyi (\r \n) + spasi berlebih DI LEVEL SQL.
+     * PENTING: TRIM() bawaan MySQL HANYA membuang spasi, TIDAK membuang \r / \n —
+     * beda dengan trim() PHP. Makanya harus di-REPLACE() dulu sebelum di-TRIM().
+     */
+    private function sqlClean(string $column): string
+    {
+        return "TRIM(REPLACE(REPLACE({$column}, CHAR(13), ''), CHAR(10), ''))";
+    }
+
+    /**
+     * Cari harga satuan otomatis dari tabel service_costs.
+     *
+     * PENTING — temuan dari data aktual: kolom 'jenis' di service_costs berisi
+     * "Pemerintah" / "Swasta" (tipe rumah sakit), BUKAN tipe darah. Dan kolom
+     * 'nama' adalah kode gabungan: prefix tipe RS + suffix kode jenis biaya,
+     * contoh "PWBNATBPJS" (Pemerintah + NATBPJS), "SKOBPJSPRI" (Swasta + BPJSPRI).
+     * Jadi harga ditentukan oleh kombinasi (Jenis RS × Jenis Biaya), sama untuk
+     * semua baris darah dalam satu pelayanan — bukan per jenis darah (WB/PRC/dst).
+     *
+     * Kolom 'jenis_biaya_id' TIDAK dipakai sebagai filter karena tidak reliable
+     * (banyak baris ter-default ke nilai yang sama, tidak mencerminkan kode di 'nama').
+     */
+    public function getHargaSatuan(?string $jenisRs, ?string $jnsBiayaNama = null): float
+    {
+        if (! $jnsBiayaNama) {
+            return 0;
+        }
+
+        $jnsBiayaNama = trim($jnsBiayaNama);
+        $jenisRs      = $jenisRs ? trim($jenisRs) : null;
+
+        // Kode jenis biaya (mis. "NATBPJS") dicari sebagai SUBSTRING di kolom 'nama'
+        $buildQuery = function () use ($jnsBiayaNama) {
+            return ServiceCost::whereRaw(
+                $this->sqlClean('nama') . ' LIKE ?',
+                ["%{$jnsBiayaNama}%"]
+            );
+        };
+
+        // 1) Persempit dengan Jenis RS (Pemerintah/Swasta) — paling akurat
+        $cost = null;
+        if ($jenisRs) {
+            $cost = $buildQuery()
+                ->whereRaw('LOWER(' . $this->sqlClean('jenis') . ') = ?', [mb_strtolower($jenisRs)])
+                ->orderByDesc('id')
+                ->first();
+
+            // partial match kalau exact tidak ketemu (jaga-jaga beda penulisan)
+            if (! $cost) {
+                $cost = $buildQuery()
+                    ->whereRaw('LOWER(' . $this->sqlClean('jenis') . ') LIKE ?', ['%' . mb_strtolower($jenisRs) . '%'])
+                    ->orderByDesc('id')
+                    ->first();
+            }
+        }
+
+        // 2) Fallback: tanpa filter Jenis RS (kombinasi spesifik tidak ketemu / RS kosong)
+        if (! $cost) {
+            $cost = $buildQuery()->orderByDesc('id')->first();
+        }
+
+        return (float) ($cost->biaya ?? 0);
+    }
+
+    /**
      * Ambil hanya daftar jenis_biaya (untuk populate dropdown saat modal dibuka).
+     * 'nama' & 'kode' di-trim karena data lama sering tercemar \r\n / spasi
+     * tersembunyi (kelihatan kalau di-dump JSON: "BPJS\r\n" dst).
      */
     public function getJenisBiayaList(): array
     {
         return JenisBiaya::orderBy('nama')
             ->get(['id', 'kode', 'nama'])
+            ->map(fn ($jb) => [
+                'id'   => $jb->id,
+                'kode' => trim($jb->kode),
+                'nama' => trim($jb->nama),
+            ])
             ->toArray();
     }
 

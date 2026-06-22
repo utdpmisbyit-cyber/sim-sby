@@ -25,7 +25,7 @@
                             </i>
                             {{ fulldate(date('Y-m-d'), " ") }}
                         </span>
-                        <a href="{{ route('unit.aftap.display_antrian') }}" target="_blank"
+                        <a href="{{ route('mobil_unit.aftap_mobil.display_antrian') }}" target="_blank"
                            class="btn btn-sm btn-light-danger fw-semibold">
                             <i class="ki-duotone ki-screen fs-5 me-1">
                                 <span class="path1"></span><span class="path2"></span>
@@ -120,7 +120,7 @@
 @push('scripts')
 <script>
     let _token   = '{{ csrf_token() }}';
-    let base_url = '{{ route('unit.aftap.index') }}';
+    let base_url = '{{ route('mobil_unit.aftap_mobil.index') }}';
 
     let $table_log_donor = $('#table_log_donor'),
         $info_log_donor  = $('#info_log_donor'),
@@ -306,8 +306,7 @@ let speak_antrian = (nama, nomorAntrian, tujuan) => {
     window.speechSynthesis.speak(speech);
 };
 
-// ✅ print_antrian thermal 80mm
-let print_antrian = (nama, kodeAftap, kodeLog, tanggal) => {
+let print_antrian = (nama, kodeaftap_mobil, kodeLog, tanggal) => {
     let content = `
     <html>
     <head>

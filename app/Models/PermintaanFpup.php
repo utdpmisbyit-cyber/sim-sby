@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PermintaanFpup extends Model
 {
@@ -106,5 +107,13 @@ class PermintaanFpup extends Model
             'batal'   => 'badge-batal',
             default   => 'badge-baru',
         };
+    }
+    public function crossTests(): HasMany
+    {
+        return $this->hasMany(CrossTest::class, 'permintaan_fpup_id');
+    }
+    public function fpup()
+    {
+        return $this->belongsTo(Fpup::class, 'fpup_id');
     }
 }

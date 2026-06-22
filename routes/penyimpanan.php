@@ -47,7 +47,7 @@ Route::name('.')->group(function () {
         Route::get('/jenis-darah', [App\Http\Controllers\Penyimpanan\PermintaanDarahExternalController::class, 'getJenisDarah'])->name('jenisDarah');
         Route::get('/petugas/search', [App\Http\Controllers\Penyimpanan\PermintaanDarahExternalController::class, 'searchPetugas'])->name('petugas.search');
         Route::get('/institusi/search', [App\Http\Controllers\Penyimpanan\PermintaanDarahExternalController::class, 'searchInstitusi'])->name('institusi.search');
-      
+        Route::get('/jenis-biaya',[App\Http\Controllers\Penyimpanan\PermintaanDarahExternalController::class, 'getJenisBiaya'])->name('jenisBiaya');
         Route::get('/{id}', [App\Http\Controllers\Penyimpanan\PermintaanDarahExternalController::class, 'show']);
         Route::post('/', [App\Http\Controllers\Penyimpanan\PermintaanDarahExternalController::class, 'store'])->name('store');
         Route::put('/{id}', [App\Http\Controllers\Penyimpanan\PermintaanDarahExternalController::class, 'update'])->name('update');
@@ -59,7 +59,7 @@ Route::name('.')->group(function () {
  
         Route::get('/', [App\Http\Controllers\Penyimpanan\PengirimanDarahExternalController::class, 'index'])->name('index');
         Route::get('/data', [App\Http\Controllers\Penyimpanan\PengirimanDarahExternalController::class, 'getData'])->name('data');
-    
+        Route::get('/jenis-biaya',[App\Http\Controllers\Penyimpanan\PermintaanDarahExternalController::class, 'getJenisBiaya'])->name('jenisBiaya');
         Route::get('/next-nomor', [App\Http\Controllers\Penyimpanan\PengirimanDarahExternalController::class, 'nextNomor'])->name('nextNomor');
         Route::get('/permintaan', [App\Http\Controllers\Penyimpanan\PengirimanDarahExternalController::class, 'getPermintaan'])->name('permintaan');
         Route::get('/cari-stok', [App\Http\Controllers\Penyimpanan\PengirimanDarahExternalController::class, 'cariStok'])->name('cariStok');
@@ -113,21 +113,34 @@ Route::name('.')->group(function () {
 
    
    Route::prefix('fraksionasi_darah')->name('fraksionasi_darah.')->group(function () {
-    Route::get('/',             [App\Http\Controllers\Penyimpanan\FraksionasiDarahController::class, 'index'])->name('index');
-    Route::get('/data',         [App\Http\Controllers\Penyimpanan\FraksionasiDarahController::class, 'getData'])->name('data');
-    Route::get('/summary',      [App\Http\Controllers\Penyimpanan\FraksionasiDarahController::class, 'getSummary'])->name('summary');
-    Route::get('/next-nomor',   [App\Http\Controllers\Penyimpanan\FraksionasiDarahController::class, 'nextNomor'])->name('nextNomor');
-    Route::get('/cari-stok',    [App\Http\Controllers\Penyimpanan\FraksionasiDarahController::class, 'cariStok'])->name('cariStok');
-    Route::get('/kantong',      [App\Http\Controllers\Penyimpanan\FraksionasiDarahController::class, 'getKantong'])->name('kantong');
-    Route::get('/search-petugas', [App\Http\Controllers\Penyimpanan\FraksionasiDarahController::class, 'searchPetugas'])->name('searchPetugas');
-    Route::get('/{fraksionasiDarah}',          [App\Http\Controllers\Penyimpanan\FraksionasiDarahController::class, 'show'])->name('show');
-    Route::post('/',                           [App\Http\Controllers\Penyimpanan\FraksionasiDarahController::class, 'store'])->name('store');
-    Route::put('/{fraksionasiDarah}',          [App\Http\Controllers\Penyimpanan\FraksionasiDarahController::class, 'update'])->name('update');
-    Route::put('/{fraksionasiDarah}/selesai',  [App\Http\Controllers\Penyimpanan\FraksionasiDarahController::class, 'selesai'])->name('selesai');
-    Route::delete('/{fraksionasiDarah}',       [App\Http\Controllers\Penyimpanan\FraksionasiDarahController::class, 'destroy'])->name('destroy');
-});
+        Route::get('/',             [App\Http\Controllers\Penyimpanan\FraksionasiDarahController::class, 'index'])->name('index');
+        Route::get('/data',         [App\Http\Controllers\Penyimpanan\FraksionasiDarahController::class, 'getData'])->name('data');
+        Route::get('/summary',      [App\Http\Controllers\Penyimpanan\FraksionasiDarahController::class, 'getSummary'])->name('summary');
+        Route::get('/next-nomor',   [App\Http\Controllers\Penyimpanan\FraksionasiDarahController::class, 'nextNomor'])->name('nextNomor');
+        Route::get('/cari-stok',    [App\Http\Controllers\Penyimpanan\FraksionasiDarahController::class, 'cariStok'])->name('cariStok');
+        Route::get('/kantong',      [App\Http\Controllers\Penyimpanan\FraksionasiDarahController::class, 'getKantong'])->name('kantong');
+        Route::get('/search-petugas', [App\Http\Controllers\Penyimpanan\FraksionasiDarahController::class, 'searchPetugas'])->name('searchPetugas');
+        Route::get('/{fraksionasiDarah}',          [App\Http\Controllers\Penyimpanan\FraksionasiDarahController::class, 'show'])->name('show');
+        Route::post('/',                           [App\Http\Controllers\Penyimpanan\FraksionasiDarahController::class, 'store'])->name('store');
+        Route::put('/{fraksionasiDarah}',          [App\Http\Controllers\Penyimpanan\FraksionasiDarahController::class, 'update'])->name('update');
+        Route::put('/{fraksionasiDarah}/selesai',  [App\Http\Controllers\Penyimpanan\FraksionasiDarahController::class, 'selesai'])->name('selesai');
+        Route::delete('/{fraksionasiDarah}',       [App\Http\Controllers\Penyimpanan\FraksionasiDarahController::class, 'destroy'])->name('destroy');
+    });
 
-
+     Route::prefix('permintaan_darah_penyimpanan')->name('permintaan_darah_penyimpanan.')->group(function () {
+        Route::get('next-no-permintaan', [App\Http\Controllers\Penyimpanan\PermintaanDarahPenyimpananController::class, 'nextNoPermintaan'])->name('next-no');
+        Route::get('search-bank-darah', [App\Http\Controllers\Penyimpanan\PermintaanDarahPenyimpananController::class, 'searchBankDarah'])->name('search-bank-darah');
+        Route::get('/', [App\Http\Controllers\Penyimpanan\PermintaanDarahPenyimpananController::class, 'index'])->name('index');
+        Route::get('jenis-darah',[App\Http\Controllers\Penyimpanan\PermintaanDarahPenyimpananController::class, 'getJenisDarah']);
+        Route::get('search-fpup', [App\Http\Controllers\Penyimpanan\PermintaanDarahPenyimpananController::class, 'searchFpup']);
+        Route::get('detail-fpup/{no_fpup}',[App\Http\Controllers\Penyimpanan\PermintaanDarahPenyimpananController::class, 'detailFpup']);
+        
+        Route::post('/', [App\Http\Controllers\Penyimpanan\PermintaanDarahPenyimpananController::class, 'store'])->name('store');
+        Route::get('/{id}', [App\Http\Controllers\Penyimpanan\PermintaanDarahPenyimpananController::class, 'show'])->name('show');
+        Route::put('/{id}', [App\Http\Controllers\Penyimpanan\PermintaanDarahPenyimpananController::class, 'update'])->name('update');
+        Route::patch('/{id}/status', [App\Http\Controllers\Penyimpanan\PermintaanDarahPenyimpananController::class, 'updateStatus'])->name('status');
+        Route::delete('/{id}', [App\Http\Controllers\Penyimpanan\PermintaanDarahPenyimpananController::class, 'destroy'])->name('destroy');
+    });
 
 
 

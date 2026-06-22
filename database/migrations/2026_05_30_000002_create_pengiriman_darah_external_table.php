@@ -18,7 +18,8 @@ return new class extends Migration
             $table->string('petugas_kode', 50);
             $table->string('penerima', 100)->nullable();
             $table->string('institusi_tujuan', 150)->nullable();
-            $table->enum('jenis_biaya', ['Dropping', 'Konfalesen', 'BPJS', 'ASURASI'])->default('Dropping');
+            $table->string('jenis_biaya')->nullable();
+            $table->enum('status_nat',['NAT', 'BIASA'])->nullable();
             $table->enum('dropping', ['AMBIL_SENDIRI', 'DIANTAR', 'KURIR'])->nullable();
             $table->enum('status', ['TERKIRIM', 'PROSES', 'BATAL'])->default('PROSES');
             $table->decimal('suhu_kirim', 5, 1)->nullable()->comment('Suhu dalam Celsius');

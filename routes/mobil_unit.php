@@ -38,7 +38,7 @@ Route::name('.')->group(function () {
     
    
     });
-     Route::prefix('aftap')->name('aftap.')->group(function () {
+     Route::prefix('aftap_mobil')->name('aftap_mobil.')->group(function () {
         Route::get('/', [App\Http\Controllers\Unit\AftapMobilController::class, 'index'])->name('index');
         Route::post('/search', [App\Http\Controllers\Unit\AftapMobilController::class, 'search'])->name('search');
         Route::post('/log_donor/search', [App\Http\Controllers\Unit\AftapMobilController::class, 'log_donor_search'])->name('log_donor.search');

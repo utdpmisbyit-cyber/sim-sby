@@ -57,7 +57,18 @@ Route::name('.')->group(function () {
         Route::post('/detail/{detail}/tolak', [App\Http\Controllers\Aftap\PengirimanSampleController::class, 'toggleTolak'])->name('detail.tolak');
 
     });
-    
+    Route::prefix('pengeluaran_mobile_unit')->name('pengeluaran_mobile_unit.')->group(function () {
+
+            Route::get('/',   [App\Http\Controllers\Aftap\PengeluaranKantongMobileUnitController::class,'index'])->name('index');
+            Route::post('/',  [App\Http\Controllers\Aftap\PengeluaranKantongMobileUnitController::class,'store'])->name('store');
+
+            Route::post('/scan-kantong',[App\Http\Controllers\Aftap\PengeluaranKantongMobileUnitController::class,'scanKantong'])->name('scan-kantong');
+            Route::delete('/remove-kantong', [App\Http\Controllers\Aftap\PengeluaranKantongMobileUnitController::class,'removeKantong'])->name('remove-kantong');
+
+            Route::get('/{id}/edit',[App\Http\Controllers\Aftap\PengeluaranKantongMobileUnitController::class,'edit'])->name('edit');
+            Route::put('/{id}',     [App\Http\Controllers\Aftap\PengeluaranKantongMobileUnitController::class,'update'])->name('update');
+            Route::delete('/{id}',  [App\Http\Controllers\Aftap\PengeluaranKantongMobileUnitController::class,'destroy'])->name('destroy');
+        });
      Route::get('riwayat_pengiriman_sample', [App\Http\Controllers\Aftap\PengirimanSampleController::class, 'riwayat'])->name('riwayat_pengiriman_sample');
 
 

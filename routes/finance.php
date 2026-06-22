@@ -13,6 +13,27 @@ Route::name('.')->group(function () {
     ioRouteResource('trial_balance', App\Http\Controllers\Finance\TrialBalanceController::class);
     ioRouteResource('buku_besar', App\Http\Controllers\Finance\BukuBesarController::class);
 
+
+     ioRouteResource('pembayaran_dropping_external', App\Http\Controllers\Finance\Kasir\PembayaranDroppingExternalController::class);
+
+    Route::post('pembayaran_dropping_external/cari-kiriman', [App\Http\Controllers\Finance\Kasir\PembayaranDroppingExternalController::class, 'cariKiriman'])
+        ->name('pembayaran_dropping_external.cari_kiriman');
+
+
+        
+    Route::prefix('pelayanan_darah')->name('pelayanan_darah.')->group(function () {
+
+        Route::get('api/next-no-pelayanan',[App\Http\Controllers\Finance\Kasir\PelayananDarahController::class, 'nextNoPelayanan'])->name('next-no-pelayanan');
+        Route::get('api/scan-pemberian',[App\Http\Controllers\Finance\Kasir\PelayananDarahController::class, 'scanPemberian'])->name('scan-pemberian');
+        Route::get('api/jenis-biaya',[App\Http\Controllers\Finance\Kasir\PelayananDarahController::class, 'jenisBiayaList'])->name('jenis-biaya-list');
+        Route::get('/',[App\Http\Controllers\Finance\Kasir\PelayananDarahController::class, 'index'])->name('index');
+        Route::post('/',[App\Http\Controllers\Finance\Kasir\PelayananDarahController::class, 'store'])->name('store');
+        Route::patch('/{pelayananDarah}/status',[App\Http\Controllers\Finance\Kasir\PelayananDarahController::class, 'updateStatus'])->name('update-status');
+        Route::put('/{pelayananDarah}',[App\Http\Controllers\Finance\Kasir\PelayananDarahController::class, 'update'])->name('update');
+        Route::delete('/{pelayananDarah}',[App\Http\Controllers\Finance\Kasir\PelayananDarahController::class, 'destroy'])->name('destroy');
+        Route::get('/{pelayananDarah}',[App\Http\Controllers\Finance\Kasir\PelayananDarahController::class, 'show'])->name('show');
+        Route::get('api/harga-satuan',[App\Http\Controllers\Finance\Kasir\PelayananDarahController::class, 'hargaSatuan'])->name('harga-satuan');
+    });
 });
 Route::prefix('laporan')->name('.laporan.')->group(function () {
     ioRouteResource('posisi_keuangan', App\Http\Controllers\Finance\Laporan\PosisiKeuanganController::class);

@@ -84,28 +84,7 @@ Route::name('.')->group(function () {
         
     Route::prefix('bank_darah')->name('bank_darah.')->group(function () {
 
-        Route::prefix('permintaan_fpup/api')->name('permintaan_fpup.')->group(function () {
-            Route::get('next-no-fpup', [App\Http\Controllers\Unit\PermintaanFpupController::class, 'nextNoFpup'])
-                ->name('next-no-fpup');
-            Route::get('search-rs',   [App\Http\Controllers\Unit\PermintaanFpupController::class, 'searchRs'])
-                ->name('search-rs');
-            Route::get('rs-by-kode',  [App\Http\Controllers\Unit\PermintaanFpupController::class, 'rsByKode'])
-                ->name('rs-by-kode');
-            Route::get('diagnosa',    [App\Http\Controllers\Unit\PermintaanFpupController::class, 'listDiagnosa'])
-                ->name('diagnosa');
-        });
-
-        Route::prefix('permintaan_fpup')->name('permintaan_fpup.')->group(function () {
-            Route::get('/',                               [App\Http\Controllers\Unit\PermintaanFpupController::class, 'index'])        ->name('index');
-            Route::get('/create',                         [App\Http\Controllers\Unit\PermintaanFpupController::class, 'create'])       ->name('create');
-            Route::post('/',                              [App\Http\Controllers\Unit\PermintaanFpupController::class, 'store'])        ->name('store');
-            Route::get('/permintaan-fpup/{id}/barcode',   [App\Http\Controllers\Unit\PermintaanFpupController::class, 'barcode'])->name('barcode');
-            Route::get('/{permintaan_fpup}/edit',         [App\Http\Controllers\Unit\PermintaanFpupController::class, 'edit'])         ->name('edit');
-            Route::put('/{permintaan_fpup}',              [App\Http\Controllers\Unit\PermintaanFpupController::class, 'update'])       ->name('update');
-            Route::patch('/{permintaan_fpup}/status',     [App\Http\Controllers\Unit\PermintaanFpupController::class, 'updateStatus']) ->name('update-status');
-            Route::delete('/{permintaan_fpup}',           [App\Http\Controllers\Unit\PermintaanFpupController::class, 'destroy'])      ->name('destroy');
-            Route::get('/{permintaan_fpup}',              [App\Http\Controllers\Unit\PermintaanFpupController::class, 'show'])         ->name('show');
-        });
+       
         Route::prefix('pemberian_darah/api')->name('pemberian_darah.')->group(function () {
             Route::get('scan-fpup',  [App\Http\Controllers\Unit\PemberianDarahController::class, 'scanFpup'])  ->name('scan-fpup');
             Route::get('scan-stok',  [App\Http\Controllers\Unit\PemberianDarahController::class, 'scanStok'])  ->name('scan-stok');
@@ -124,67 +103,8 @@ Route::name('.')->group(function () {
         });
     
 
-Route::prefix('pelayanan_darah')->name('pelayanan_darah.')->group(function () {
-
-    // ── API (harus di atas /{id} agar tidak konflik) ──────────────────────────
-    Route::get('api/next-no-pelayanan',
-        [App\Http\Controllers\Unit\PelayananDarahController::class, 'nextNoPelayanan'])
-        ->name('next-no-pelayanan');
-
-    Route::get('api/scan-pemberian',
-        [App\Http\Controllers\Unit\PelayananDarahController::class, 'scanPemberian'])
-        ->name('scan-pemberian');
-
-    // Tambahan: daftar jenis biaya untuk dropdown (opsional, sudah di-pass via index)
-    Route::get('api/jenis-biaya',
-        [App\Http\Controllers\Unit\PelayananDarahController::class, 'jenisBiayaList'])
-        ->name('jenis-biaya-list');
-
-    // ── CRUD ──────────────────────────────────────────────────────────────────
-    Route::get('/',
-        [App\Http\Controllers\Unit\PelayananDarahController::class, 'index'])
-        ->name('index');
-
-    Route::post('/',
-        [App\Http\Controllers\Unit\PelayananDarahController::class, 'store'])
-        ->name('store');
-
-    Route::patch('/{pelayananDarah}/status',
-        [App\Http\Controllers\Unit\PelayananDarahController::class, 'updateStatus'])
-        ->name('update-status');
-
-    Route::put('/{pelayananDarah}',
-        [App\Http\Controllers\Unit\PelayananDarahController::class, 'update'])
-        ->name('update');
-
-    Route::delete('/{pelayananDarah}',
-        [App\Http\Controllers\Unit\PelayananDarahController::class, 'destroy'])
-        ->name('destroy');
-
-    // PENTING: /{id} harus paling bawah agar tidak menangkap 'api/*'
-    Route::get('/{pelayananDarah}',
-        [App\Http\Controllers\Unit\PelayananDarahController::class, 'show'])
-        ->name('show');
-});
- 
-
-
-
     });
 
-    Route::prefix('permintaan_darah_penyimpanan')->name('permintaan_darah_penyimpanan.')->group(function () {
-        Route::get('next-no-permintaan', [App\Http\Controllers\Unit\PermintaanDarahPenyimpananController::class, 'nextNoPermintaan'])->name('next-no');
-        Route::get('search-bank-darah', [App\Http\Controllers\Unit\PermintaanDarahPenyimpananController::class, 'searchBankDarah'])->name('search-bank-darah');
-        Route::get('/', [App\Http\Controllers\Unit\PermintaanDarahPenyimpananController::class, 'index'])->name('index');
-        Route::get('jenis-darah',[App\Http\Controllers\Unit\PermintaanDarahPenyimpananController::class, 'getJenisDarah']);
-        Route::get('search-fpup', [App\Http\Controllers\Unit\PermintaanDarahPenyimpananController::class, 'searchFpup']);
-        Route::get('detail-fpup/{no_fpup}',[App\Http\Controllers\Unit\PermintaanDarahPenyimpananController::class, 'detailFpup']);
-        
-        Route::post('/', [App\Http\Controllers\Unit\PermintaanDarahPenyimpananController::class, 'store'])->name('store');
-        Route::get('/{id}', [App\Http\Controllers\Unit\PermintaanDarahPenyimpananController::class, 'show'])->name('show');
-        Route::put('/{id}', [App\Http\Controllers\Unit\PermintaanDarahPenyimpananController::class, 'update'])->name('update');
-        Route::patch('/{id}/status', [App\Http\Controllers\Unit\PermintaanDarahPenyimpananController::class, 'updateStatus'])->name('status');
-        Route::delete('/{id}', [App\Http\Controllers\Unit\PermintaanDarahPenyimpananController::class, 'destroy'])->name('destroy');
-    });
+   
    
 });

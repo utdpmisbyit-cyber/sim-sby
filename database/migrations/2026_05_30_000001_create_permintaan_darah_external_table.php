@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('petugas_kode', 50);
             $table->string('nama_peminta', 100);
             $table->string('institusi_lain', 150);
-            $table->enum('jenis_biaya', ['Dropping',  'Konfalesen','BPJS', 'ASURASI',])->default('Dropping');
+            $table->string('jenis_biaya')->nullable();
             $table->enum('dropping', ['AMBIL_SENDIRI', 'DIANTAR', 'KURIR'])->nullable();
             $table->enum('status', ['SUDAH_DIPENUHI', 'BELUM_DIPENUHI', 'SEBAGIAN'])->default('BELUM_DIPENUHI');
             $table->text('keterangan')->nullable();
@@ -31,7 +31,7 @@ return new class extends Migration
             $table->string('no_fpup', 50)->nullable();
             $table->string('fpup_id', 50)->nullable();
             $table->enum('gol_darah', ['A', 'B', 'O', 'AB']);
-            $table->enum('rhesus', ['Positif', 'Negatif']);
+            $table->enum('rhesus', ['+', '-']);
             $table->integer('jumlah')->nullable();
             $table->integer('jumlah_dipenuhi')->default(0);
             $table->date('tanggal_perlu')->nullable();

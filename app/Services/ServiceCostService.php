@@ -12,7 +12,7 @@ class ServiceCostService extends IoService
     {
         $this->model = new ServiceCost();
         $this->sort_by = ['id' => 'asc'];
-        $this->filters = ['kode', 'jenis', 'jenis_biaya_id', 'kelompok_biaya_id'];
+        $this->filters = ['kode','nama', 'jenis', 'jenis_biaya_id', 'kelompok_biaya_id'];
     }
 
     public function filter_params($params, $id = '')

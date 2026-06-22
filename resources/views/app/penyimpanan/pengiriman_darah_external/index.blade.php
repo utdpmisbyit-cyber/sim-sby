@@ -444,11 +444,8 @@
                                 </div>
                                 <div class="col-md-2">
                                     <label class="form-label">Jenis Biaya <span class="text-danger">*</span></label>
-                                    <select id="fJenisBiaya" class="form-control" required>
-                                        <option>Dropping</option>
-                                        <option>Konfalesen</option>
-                                        <option>BPJS</option>
-                                        <option>ASURASI</option>
+                                    <select class="form-control" id="fJenisBiaya">
+                                        <option value="">Memuat...</option>
                                     </select>
                                 </div>
                                 <div class="col-md-2">
@@ -725,6 +722,7 @@ $('#tblSearch').on('input', function () {
 ═══════════════════════════════════════════════════════════ */
 $('#btnTambah').on('click', function () {
     resetForm();
+    loadJenisBiaya();
     $('#modalTitle').text('Pengiriman Baru');
     $('#editId').val('');
 
@@ -735,6 +733,7 @@ $('#btnTambah').on('click', function () {
     $.get(URL_NEXT_NO, (r) => { if (r.success) $('#fNomorPengiriman').val(r.nomor); });
 
     $('#modalForm').modal('show');
+    
 });
 
 /* ═══════════════════════════════════════════════════════════
@@ -875,9 +874,40 @@ function renderPermintaanDetail(details) {
     });
 }
 
-/* ═══════════════════════════════════════════════════════════
-   OPEN STOK PICKER — FIX: parameter (e) ditambahkan
-═══════════════════════════════════════════════════════════ */
+async function loadJenisBiaya() {
+    try {
+
+        const response = await fetch(
+            "{{ route('penyimpanan.pengiriman_darah_external.jenisBiaya') }}"
+        );
+
+        const json = await response.json();
+
+        let html = '<option value="">-- Pilih Jenis Biaya --</option>';
+
+        if (json.success) {
+
+            json.data.forEach(item => {
+                html += `
+                    <option value="${item.kode}">
+                        ${item.nama}
+                    </option>
+                `;
+            });
+
+        }
+
+        $('#fJenisBiaya').html(html);
+
+    } catch (e) {
+
+        $('#fJenisBiaya').html(
+            '<option value="">Gagal memuat data</option>'
+        );
+
+        console.log(e);
+    }
+}
 $(document).on('click', '.btn-pilih-stok', function (e) {
     e.preventDefault();
     e.stopPropagation();

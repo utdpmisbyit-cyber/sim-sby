@@ -10,7 +10,11 @@ class ServiceCost extends Model
     const JENIS = ['Pemerintah', 'Swasta'];
     use SoftDeletes;
     protected $table = 'service_cost';
-    protected $fillable = ['kode', 'jenis', 'biaya', 'jenis_biaya_id', 'kelompok_biaya_id'];
-    public function jenisBiaya() { return $this->belongsTo(JenisBiaya::class); }
+    protected $fillable = ['kode','nama' ,'jenis', 'biaya', 'jenis_biaya_id', 'kelompok_biaya_id'];
+    public function jenisBiaya() { return $this->belongsTo(JenisBiaya::class, 'jenis_biaya_id'); }
     public function kelompokBiaya() { return $this->belongsTo(KelompokBiaya::class); }
+     protected $casts = [
+        'biaya' => 'integer',
+    ];
+
 }

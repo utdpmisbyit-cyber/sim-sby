@@ -21,6 +21,7 @@ class PengirimanDarahExternal extends Model
         'penerima',
         'institusi_tujuan',
         'jenis_biaya',
+        'status_nat',
         'dropping',
         'status',
         'suhu_kirim',

@@ -6,6 +6,7 @@ use App\Models\PengirimanDarahExternal;
 use App\Models\PengirimanDarahExternalDetail;
 use App\Models\PermintaanDarahExternal;
 use App\Models\PermintaanDarahExternalDetail;
+use App\Models\JenisBiaya;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
@@ -13,13 +14,13 @@ use Carbon\Carbon;
 class PengirimanDarahExternalService
 {
     public function __construct(
-        protected StokDarahService $stokService  // ✅ inject
+        protected StokDarahService $stokService  
     ) {}
 
     
     public function generateNomorPengiriman(): string
     {
-        $prefix = 'PDE-' . now()->format('Ymd') . '-';
+        $prefix = 'PDE' . now()->format('Ymd');
 
         $last = PengirimanDarahExternal::where('nomor_pengiriman', 'like', $prefix . '%')
             ->orderByDesc('nomor_pengiriman')
@@ -120,9 +121,12 @@ class PengirimanDarahExternalService
         }
     }
 
-    /**
-     * Simpan pengiriman baru beserta detail-nya
-     */
+     public function getJenisBiaya()
+    {
+        return JenisBiaya::select('id', 'kode', 'nama')
+            ->orderBy('nama')
+            ->get();
+    }
     public function store(array $data): PengirimanDarahExternal
     {
         return DB::transaction(function () use ($data) {

@@ -86,6 +86,34 @@ class MenuService
             'bg' => '#e0f2fe',
             'icon' => '<path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/>',
         ],
+        'penyimpanan' => [
+            'route' => 'penyimpanan',
+            'caption' => 'Penyimpanan',
+            'sub' => 'Penyimpanan darah & Fraksionasi',
+            'color' => '#ef4444',
+            'bg' => '#fee2e2',
+            'icon' => '<path d="M12 2C12 2 5 9 5 14a7 7 0 0 0 14 0c0-5-7-12-7-12z"/>',
+        ],
+       'crossmatch' => [
+            'route' => 'crossmatch',
+            'caption' => 'Crossmatch',
+            'sub' => 'Transaksi, Bank darah & Rs',
+            'color' => '#ef4444',
+            'bg' => '#fee2e2',
+            'icon' => '<path d="M12 2C12 2 5 9 5 14a7 7 0 0 0 14 0c0-5-7-12-7-12z"/>',
+        ],
+
+        'referal' => [
+            'route' => 'referal',
+            'caption' => 'Referal',
+            'sub' => 'Penyimpanan, Bank darah & Rs ,UTD',
+            'color' => '#dc2626',
+            'bg' => '#fef2f2',
+            'icon' => '
+                <path d="M9 2h6v3a2 2 0 0 0 2 2v8a5 5 0 0 1-10 0V7a2 2 0 0 0 2-2V2z"/>
+                <path d="M11 4h2v2h-2z"/>
+            ',
+        ],
     ];
    
     protected static array $master = [
@@ -156,6 +184,7 @@ class MenuService
         'aftap' => ['route' => 'aftap.aftap.index', 'caption' => 'Aftap'],
         'permintaan_kantong' => ['route' => 'aftap.permintaan_kantong.index', 'caption' => 'Permintaan Kantong'],
         'penerimaan_kantong' => ['route' => 'aftap.penerimaan.index', 'caption' => 'Penerimaan Kantong Darah'],
+        'pengeluaran_kantong_mu' => ['route' => 'aftap.pengeluaran_mobile_unit.index', 'caption' => 'Pengeluaran Kantong Mu'],
         'pengembalian_kantong' => ['route' => 'aftap.pengembalian_kantong.index', 'caption' => 'Pengembalian Kantong'],
         'pengiriman_sample' => ['route' => 'aftap.pengiriman_sample.index', 'caption' => 'Pengiriman Sample Sero & Produksi'],
         'riwayat_pengiriman_sample' => ['route' => 'aftap.riwayat_pengiriman_sample', 'caption' => 'Riwayat Pengiriman Sample'],
@@ -176,7 +205,7 @@ class MenuService
         'pendaftaran' => ['route' => 'mobil_unit.pendaftaran_mobil.index', 'caption' => 'Pendaftaran Mu'],
         'pemeriksaan_kesehatan' => ['route' => 'mobil_unit.pemeriksaan_mobil.index', 'caption' => 'Pemeriksaan Kesehatan'],
         'pemeriksaan_hb' => ['route' => 'mobil_unit.pemeriksaan_mobil_hb.index', 'caption' => 'Hermatologi / Pra Lab'],
-        'aftap' => ['route' => 'mobil_unit.aftap.index', 'caption' => 'Aftap'],
+        'aftap' => ['route' => 'mobil_unit.aftap_mobil.index', 'caption' => 'Aftap'],
         'permintaan_mobil_unit' => ['route' => 'mobil_unit.permintaan_mobil_unit.index', 'caption' => 'Permintaan Kantong Mu'],
 
 
@@ -189,23 +218,12 @@ class MenuService
         'rencana_produksi' => ['route' => 'kantong_darah.rencana_produksi.index', 'caption' => 'Rencana Produksi'],
         'produksi_rilis' => ['route' => 'kantong_darah.produksi_rilis.index', 'caption' => 'Produksi Rilis'],
         
-        'penyimpanan' => ['route' => '#.index', 'caption' => 'penyimpanan', 'sub_menus' => [
-            'penerimaan_prolis' => ['route' => 'penyimpanan.penerimaan_prolis.index', 'caption' => 'Penerimaan Prolis'],
-            'permintaan_external' => ['route' => 'penyimpanan.permintaan_external.index', 'caption' => 'Permintaan External'],
-            'pengiriman_darah_external' => ['route' => 'penyimpanan.pengiriman_darah_external.index', 'caption' => 'Pengiriman Darah External'],
-            'pengiriman_bank_darah_internal' => ['route' => 'penyimpanan.pengiriman_bank_darah_internal.index', 'caption' => 'Pengiriman Internal'],
-            'penyisihan_darah_rusak' => ['route' => 'penyimpanan.penyisihan_darah_rusak.index', 'caption' => 'Penyisihan darah Rusak'],
-            'pengembalian_darah_external' => ['route' => 'penyimpanan.pengembalian_darah_external.index', 'caption' => 'Pengembalian External'],
-            'opname_darah' => ['route' => 'penyimpanan.opname_darah.index', 'caption' => 'Opname Darah'],
-            'stok_darah' => ['route' => 'penyimpanan.stok_darah.index', 'caption' => 'Informasi Stok Darah'],
-            'fraksionasi_darah' => ['route' => 'penyimpanan.fraksionasi_darah.index', 'caption' => 'Fraksionasi Darah'],
-       ]],
+       
        
     
     ];
 
    
-
     protected static array $serologi = [
         'serologi' => ['route' => 'serologi', 'caption' => 'Dashboard'],
         'transaksi_serologi' => ['route' => 'serologi.transaksi_serologi.index', 'caption' => 'Transaksi Serologi'],
@@ -218,13 +236,6 @@ class MenuService
     protected static array $misc = [
         'misc' => ['route' => 'misc', 'caption' => 'Dashboard'],
         'permintaan_kantong' => ['route' => 'misc.permintaan_kantong.index', 'caption' => 'Permintaan Kantong'],
-    
-        'bank_darah' => ['route' => '#.index', 'caption' => 'Bank Darah', 'sub_menus' => [
-            'permintaan_fpup' => ['route' => 'unit.bank_darah.permintaan_fpup.index', 'caption' => 'Permintaan Fpup'],
-            'pemberian_darah' => ['route' => 'unit.bank_darah.pemberian_darah.index', 'caption' => 'Pemberian Darah'],
-            'pelayanan_darah' => ['route' => 'unit.bank_darah.pelayanan_darah.index', 'caption' => 'Pelayanan Darah'],
-            'permintaan_darah_penyimpanan' => ['route' => 'unit.permintaan_darah_penyimpanan.index', 'caption' => 'Permintaan Darah Penyimpanan'],
-        ]],
         
     ];
 
@@ -250,7 +261,7 @@ class MenuService
             'return_supplier' => ['route' => 'inventory.return_supplier.index', 'caption' => 'Return Supplier'],
         ]],
         'pengeluaran' => ['route' => '#.index', 'caption' => 'Pengeluaran', 'sub_menus' => [
-            'pengajuan_barang' => ['route' => 'inventory.pengajuan_barang.index', 'caption' => 'Pengajuan Barang'],
+            'pengajuan_barang' => ['route' => 'inventory.pengajuan_barang.index', 'caption' => 'Permintaan Barang'],
             'pengeluaran_barang' => ['route' => 'inventory.pengeluaran_barang.index', 'caption' => 'Pengeluaran Barang'],
             'pemakaian_barang' => ['route' => 'inventory.pemakaian_barang.index', 'caption' => 'Pemakaian Barang'],
             'pinjam_barang' => ['route' => 'inventory.pinjam_barang.index', 'caption' => 'Pinjam Barang'],
@@ -274,6 +285,40 @@ class MenuService
             'penyesuaian' => ['route' => 'finance.penyesuaian.index', 'caption' => 'Penyesuaian'],
         ]],
     ];
+     protected static array $penyimpanan = [
+        'penyimpanan' => ['route' => 'penyimpanan', 'caption' => 'Dashboard'],
+        'penerimaan_prolis' => ['route' => 'penyimpanan.penerimaan_prolis.index', 'caption' => 'Penerimaan Prolis'],
+        'permintaan_external' => ['route' => 'penyimpanan.permintaan_external.index', 'caption' => 'Permintaan External'],
+        'pengiriman_darah_external' => ['route' => 'penyimpanan.pengiriman_darah_external.index', 'caption' => 'Pengiriman Darah External'],
+        'pengiriman_bank_darah_internal' => ['route' => 'penyimpanan.pengiriman_bank_darah_internal.index', 'caption' => 'Pengiriman Darah Internal'],
+        'penyisihan_darah_rusak' => ['route' => 'penyimpanan.penyisihan_darah_rusak.index', 'caption' => 'Penyisihan darah Rusak'],
+        'pengembalian_darah_external' => ['route' => 'penyimpanan.pengembalian_darah_external.index', 'caption' => 'Pengembalian External'],
+        'opname_darah' => ['route' => 'penyimpanan.opname_darah.index', 'caption' => 'Opname Darah'],
+         
+        'informasi & fraksionasi' => ['route' => '#.index', 'caption' => 'informasi & fraksionasi', 'sub_menus' => [
+            'stok_darah' => ['route' => 'penyimpanan.stok_darah.index', 'caption' => 'Informasi Stok Darah'],
+            'fraksionasi_darah' => ['route' => 'penyimpanan.fraksionasi_darah.index', 'caption' => 'Fraksionasi Darah'],
+            'permintaan_darah_penyimpanan' => ['route' => 'penyimpanan.permintaan_darah_penyimpanan.index', 'caption' => 'Permintaan to Penyimpanan']
+         ]],
+     ];
+     protected static array $crossmatch = [
+        'crossmatch' => ['route' => 'crossmatch', 'caption' => 'Dashboard'],
+        'cross test' => ['route' => 'crossmatch.cross_test.index', 'caption' => 'Cross test'],
+        'pelayanan crosstest' => ['route' => 'crossmatch.pelayanan_crosstest.index', 'caption' => 'Pelayanan Crosstest'],
+        'pemberian darah' => ['route' => 'crossmatch.pemberian_darah.index', 'caption' => 'Pemberian Darah'],
+        'pengembalian darah' => ['route' => 'crossmatch.pengembalian_darah.index', 'caption' => 'Pengembalian Darah'],
+        'riwayat pasien'  =>  ['route' => 'crossmatch.riwayat_pasien_crossmatch.index','caption' => 'Riwayat pasien Crossmatch']
+     ];
+     protected static array $referal = [
+        'referal' => ['route' => 'referal', 'caption' => 'Dashboard'],
+        'permintaan_fpup' => ['route' => 'referal.permintaan_fpup.index', 'caption' => 'Permintaan fpup'],
+        'cross_test_referal' => ['route' => 'referal.cross_test_referal.index', 'caption' => 'Cross Test'],
+        'pelayanan_crosstest_referal' => ['route' => 'referal.pelayanan_crosstest_referal.index', 'caption' => 'Pelayanan Cross Test'],
+        'pemberian_darah' => ['route' => 'referal.pemberian_darah.index', 'caption' => 'Pemberian Darah'],
+        'pengembalian_darah' => ['route' => 'referal.pengembalian_darah.index', 'caption' => 'Pengembalian Darah'],
+        'pemberian_awal_referal' => ['route' => 'referal.pemberian_awal_referal.index', 'caption' => 'Pemberian Awal Pasien'],
+      
+    ];
 
     public function listMenu($module): array
     {
@@ -287,6 +332,9 @@ class MenuService
             'gudang' => self::$gudang,
             'inventory' => self::$inventory,
             'finance' => self::$finance,
+            'crossmatch' => self::$crossmatch,
+            'penyimpanan'=> self::$penyimpanan,
+            'referal' => self::$referal,
             'mobil_unit'  => self::$mobil_unit,
             default => [],
         };

@@ -7,23 +7,14 @@ namespace App\Services;
 
 
 use App\Models\PengirimanBankDarahInternal;
-
 use App\Models\PengirimanBankDarahInternalDetail;
-
 use App\Models\PermintaanDarahPenyimpanan;
-
 use App\Models\PenerimaanProlisPenyimpanan;
-
 use App\Models\Petugas;
-
 use Carbon\Carbon;
-
 use Illuminate\Support\Facades\Auth;
-
 use Illuminate\Support\Facades\DB;
-
 use Exception;
-
 
 
 class PengirimanBankDarahInternalService
@@ -33,15 +24,8 @@ class PengirimanBankDarahInternalService
     public function getData()
 
     {
-
-        return PengirimanBankDarahInternal::with([
-
-            'details'
-
-        ])
-
+        return PengirimanBankDarahInternal::with(['details' ])
             ->latest()
-
             ->get();
 
     }

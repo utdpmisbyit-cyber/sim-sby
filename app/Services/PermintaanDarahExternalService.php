@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\PermintaanDarahExternal;
 use App\Models\PermintaanDarahExternalDetail;
+use App\Models\JenisBiaya;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -27,7 +28,12 @@ class PermintaanDarahExternalService
         
         return $query->orderBy('created_at', 'desc')->paginate(15);
     }
-
+     public function getJenisBiaya()
+    {
+        return JenisBiaya::select('id', 'kode', 'nama')
+            ->orderBy('nama')
+            ->get();
+    }
     public function findById($id)
     {
         return PermintaanDarahExternal::with('details')->findOrFail($id);
@@ -97,7 +103,7 @@ class PermintaanDarahExternalService
                     'permintaan_id'   => $permintaan->id,
                     'jenis_darah'     => $detail['jenis_darah'],
                     'gol_darah'       => $detail['gol_darah'],
-                    'rhesus'              => $detail['rhesus'],
+                    'rhesus'          => $detail['rhesus'],
                     'jumlah'          => $detail['jumlah'],
                     'donor_pengganti' => $detail['donor_pengganti'],
                     'no_fpup'         => $detail['no_fpup'] ?? null,

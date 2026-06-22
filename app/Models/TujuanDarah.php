@@ -13,6 +13,6 @@ class TujuanDarah extends Model
     protected $guarded = ['id'];
     
     public function kelompokRumahSakit() {
-        return $this->belongsTo(KelompokRumahSakit::class,'kelompok_id');
+        return $this->belongsTo(KelompokRumahSakit::class,'kelompok_rumah_sakit_id');
     }
 }

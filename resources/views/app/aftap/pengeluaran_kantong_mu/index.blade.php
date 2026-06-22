@@ -313,7 +313,7 @@
     ══════════════════════════════════════════════════════════════════════ --}}
     <div class="tab-panel active" id="tab-form">
 
-        <form id="frmPengeluaran" method="POST" action="{{ route('unit.pengeluaran_mobile_unit.store') }}">
+        <form id="frmPengeluaran" method="POST" action="{{ route('aftap.pengeluaran_mobile_unit.store') }}">
             @csrf
 
             {{-- Row 1: No. Keluar + Tanggal ──────────────────────────────── --}}
@@ -548,7 +548,7 @@
                             </td>
                             <td style="text-align:center">
                                 <div style="display:flex;gap:.5rem;justify-content:center;">
-                                    <a href="{{ route('unit.pengeluaran_mobile_unit.edit', $row->id) }}" 
+                                    <a href="{{ route('aftap.pengeluaran_mobile_unit.edit', $row->id) }}" 
                                     class="btn-edit" style="background:none;border:none;cursor:pointer;color:var(--clr-primary);">
                                         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                             <path d="M17 3l4 4-11 11-4 1 1-4L17 3z"/>
@@ -685,7 +685,7 @@
         btnAdd.innerHTML = '<span class="spinner"></span> Cek...';
 
         try {
-            const res  = await fetch('{{ route("unit.pengeluaran_mobile_unit.scan-kantong") }}', {
+            const res  = await fetch('{{ route("aftap.pengeluaran_mobile_unit.scan-kantong") }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -730,7 +730,7 @@
         btn.textContent = '...';
 
         try {
-            const res  = await fetch('{{ route("unit.pengeluaran_mobile_unit.remove-kantong") }}', {
+            const res  = await fetch('{{ route("aftap.pengeluaran_mobile_unit.remove-kantong") }}', {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -758,7 +758,7 @@
     // ── Reset ─────────────────────────────────────────────────────────────────
     window.resetForm = function () {
         if (!confirm('Reset semua data form & daftar kantong?')) return;
-        fetch('{{ route("unit.pengeluaran_mobile_unit.remove-kantong") }}', {
+        fetch('{{ route("aftap.pengeluaran_mobile_unit.remove-kantong") }}', {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
             body: JSON.stringify({ no_kantong: '__ALL__' }),

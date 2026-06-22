@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\PermintaanDarahExternalService;
 use App\Models\TujuanDarah;
 use App\Models\Petugas;
+use App\Models\JenisBiaya;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -22,7 +23,27 @@ class PermintaanDarahExternalController extends Controller
     {
         return view('app.penyimpanan.permintaan_darah_external.index');
     }
+   public function getJenisBiaya()
+    {
+        try {
 
+            $data = $this->service->getJenisBiaya();
+
+            return response()->json([
+                'success' => true,
+                'data' => $data
+            ]);
+
+        } catch (\Exception $e) {
+
+            Log::error('Error getJenisBiaya : '.$e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'data' => []
+            ]);
+        }
+    }
     public function getData(Request $request)
     {
         try {
@@ -177,7 +198,7 @@ class PermintaanDarahExternalController extends Controller
                 'petugas_kode'              => 'nullable|string|max:50',
                 'petugas'                   => 'nullable|string|max:100',
                 'institusi_lain'            => 'required|string|max:150',
-                'jenis_biaya'               => 'required|in:Dropping,Konfalesen,BPJS,ASURASI',
+                'jenis_biaya'               => 'required|string|max:150',
                 'dropping'                  => 'nullable|in:AMBIL_SENDIRI,DIANTAR,KURIR',
                 'tanggal_perlu'             => 'nullable|date',
                 'keterangan'                => 'nullable|string',
@@ -222,14 +243,14 @@ class PermintaanDarahExternalController extends Controller
                 'petugas_kode'              => 'nullable|string|max:50',
                 'petugas'                   => 'nullable|string|max:100',
                 'institusi_lain'            => 'sometimes|string|max:150',
-                'jenis_biaya'               => 'sometimes|in:Dropping,Konfalesen,BPJS,ASURASI',
+                'jenis_biaya'               => 'nullable|string|max:150',
                 'dropping'                  => 'nullable|in:AMBIL_SENDIRI,DIANTAR,KURIR',
                 'tanggal_perlu'             => 'nullable|date',
                 'keterangan'                => 'nullable|string',
                 'details'                   => 'sometimes|array',
                 'details.*.jenis_darah'     => 'required|string|max:50',
                 'details.*.gol_darah'       => 'required|in:A,B,O,AB',
-                'details.*.rhesus'              => 'required|in:+,-',
+                'details.*.rhesus'          => 'required|in:Positif,Negatif',
                 'details.*.jumlah'          => 'required|integer|min:1',
                 'details.*.donor_pengganti' => 'required|in:Ya,Tidak',
                 'details.*.no_fpup'         => 'required_if:details.*.donor_pengganti,Ya|nullable|string',

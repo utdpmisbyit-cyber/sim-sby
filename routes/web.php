@@ -21,6 +21,8 @@ Route::middleware('auth')->group(function () {
         Route::name('aftap')->prefix('aftap')->group(__DIR__ . '/aftap.php');
         Route::name('produksi')->prefix('produksi')->group(__DIR__ . '/produksi.php');
         Route::name('penyimpanan')->prefix('penyimpanan')->group(__DIR__ . '/penyimpanan.php');
+        Route::name('crossmatch')->prefix('crossmatch')->group(__DIR__ . '/crossmatch.php');
+        Route::name('referal')->prefix('referal')->group(__DIR__ . '/referal.php');
 
     });
 
