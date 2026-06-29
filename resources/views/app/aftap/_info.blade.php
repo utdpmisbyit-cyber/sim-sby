@@ -235,7 +235,7 @@
 
         if (!no_kantong) return;
 
-        $.post("{{ route('unit.aftap.scan_kantong') }}", {
+        $.post("{{ route('aftap.aftap.scan_kantong') }}", {
             _token: "{{ csrf_token() }}",
             no_kantong: no_kantong
 

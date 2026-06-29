@@ -12,7 +12,7 @@ class LogDonorService extends IoService
     {
         $this->model = new LogDonor();
         $this->sort_by = ['created_at' => 'desc'];
-        $this->filters = ['kode', 'cabang_id', 'donor_id', 'petugas_registrasi_id', 'step'];
+        $this->filters = ['kode', 'cabang_id', 'donor_id','jenis_donor', 'petugas_registrasi_id', 'step'];
     }
 
     public function dynamic_search($model, $params = [])

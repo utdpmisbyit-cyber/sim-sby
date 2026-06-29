@@ -3,7 +3,7 @@
         <thead>
         <tr class="text-start bg-secondary text-dark fw-bold fs-7 text-uppercase border-bottom-0">
             <th class="w-10px ps-4 rounded-start">#</th>
-            <th>Pengiriman Sample (No. FPD)</th>
+            <th>Pengiriman Aftap (No. Pengiriman)</th>
             <th>Tipe Kantong</th>
             <th>Tanggal</th>
             <th>Petugas</th>
@@ -20,7 +20,7 @@
             @php($total = $item->details->count())
             <tr>
                 <td class="ps-4">{{ $no++ }}</td>
-                <td class="fw-bold">{{ $item->pengirimanSample->no_fpd ?? '-' }}</td>
+                <td class="fw-bold">{{ $item->pengirimanAftap->no_pengiriman ?? '-' }}</td>
                 <td>{{ $item->tipeKantong->nama ?? '-' }}</td>
                 <td>{{ formatDate($item->tanggal) }}</td>
                 <td>{{ $item->petugas->nama ?? '-' }}</td>

@@ -25,7 +25,19 @@ Route::name('.')->group(function () {
         Route::put('/{id}', [App\Http\Controllers\Penyimpanan\PenerimaanProlisPenyimpananController::class, 'update'])->name('update');
         Route::delete('/{id}', [App\Http\Controllers\Penyimpanan\PenerimaanProlisPenyimpananController::class, 'destroy'])->name('destroy');
     });
+    Route::prefix('pengembalian_bank_darah_internal')->name('pengembalian_bank_darah_internal.')->group(function () {
 
+        Route::get('/',               [App\Http\Controllers\Penyimpanan\PengembalianBankDarahInternalController::class, 'index'])->name('index');
+        Route::get('/data',           [App\Http\Controllers\Penyimpanan\PengembalianBankDarahInternalController::class, 'getData'])->name('data');
+        Route::get('/next-nomor',     [App\Http\Controllers\Penyimpanan\PengembalianBankDarahInternalController::class, 'nextNomor'])->name('nextNomor');
+        Route::get('/cari-stok',      [App\Http\Controllers\Penyimpanan\PengembalianBankDarahInternalController::class, 'cariStok'])->name('cariStok');
+        Route::get('/search-bank',    [App\Http\Controllers\Penyimpanan\PengembalianBankDarahInternalController::class, 'searchBankDarah'])->name('searchBankDarah');
+        Route::get('/search-petugas', [App\Http\Controllers\Penyimpanan\PengembalianBankDarahInternalController::class, 'searchPetugas'])->name('searchPetugas');
+        Route::get('/{id}',           [App\Http\Controllers\Penyimpanan\PengembalianBankDarahInternalController::class, 'show'])->name('show');
+        Route::post('/',              [App\Http\Controllers\Penyimpanan\PengembalianBankDarahInternalController::class, 'store'])->name('store');
+        Route::put('/{id}',           [App\Http\Controllers\Penyimpanan\PengembalianBankDarahInternalController::class, 'update'])->name('update');
+        Route::delete('/{id}',        [App\Http\Controllers\Penyimpanan\PengembalianBankDarahInternalController::class, 'destroy'])->name('destroy');
+    });
   
     Route::prefix('pengiriman_bank_darah_internal')->name('pengiriman_bank_darah_internal.')->group(function () {
         Route::get('/', [App\Http\Controllers\Penyimpanan\PengirimanBankDarahInternalController::class, 'index'])->name('index');

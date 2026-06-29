@@ -15,7 +15,6 @@
                         <h6 class="card-title text-muted fw-bold fs-8 text-uppercase m-0">Informasi Serologi</h6>
                     </div>
                     <div class="card-body px-4 pt-3 pb-4">
-                        <x-io-input :viewtype="2" name="tanggal" caption="Tanggal" :value="formatDate($serologi->tanggal ?? date('d-m-Y'))" class="datepicker" required />
                         <input type="hidden" name="group" value="{{ $serologi->group ?? ($generated_group ?? '') }}">
                         @if(empty($serologi))
                             <div class="separator separator-dashed my-5"></div>
@@ -24,8 +23,11 @@
                             <button type="button" class="btn btn-sm btn-light-primary mt-2" onclick="add_batch_row()">+ Tambah Baris</button>
                         @else
                         <div class="row">
-                            <div class="col-lg-12">
+                            <div class="col-lg-6">
                                 <x-io-input :viewtype="2" name="nomor" caption="Nomor" :value="$serologi->nomor ?? ''" required />
+                            </div>
+                            <div class="col-lg-6">
+                                <x-io-input :viewtype="2" name="tanggal" caption="Tanggal" :value="formatDate($serologi->tanggal ?? date('d-m-Y'))" class="datepicker" required />
                             </div>
                         </div>
                         <div class="row">
@@ -39,9 +41,33 @@
                                 <x-io-select :viewtype="2" name="reagen_serologi_id" caption="Reagen" :options="$reagen_serologi_options" :value="$serologi->reagen_serologi_id ?? ''" required />
                             </div>
                         </div>
+                        <div class="row my-4">
+                            <div class="col-lg-6">
+                                <x-io-input :viewtype="2" name="no_lot_reagen" caption="Nomor Lot Reagen" :value="$serologi->no_lot_reagen ?? ($generated_no_lot ?? '')" />
+                            </div>
+                            <div class="col-lg-6">
+                                <x-io-input :viewtype="2" name="tanggal_expired_reagen" caption="Tanggal Expired Reagen" :value="formatDate($serologi->tanggal_expired_reagen ?? '')" class="datepicker" />
+                            </div>
+                        </div>
                         @endif
+
+                        @if(!empty($serologi))
+
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <x-io-input caption="Waktu Ditambahkan" name="time_in" :value="$serologi->time_in ?? ''" :viewtype="2" class="datetimepicker" />
+                                </div>
+                                <div class="col-lg-6">
+                                    <x-io-input caption="Waktu Diproses" name="time_process" :value="$serologi->time_process ?? ''" :viewtype="2" class="datetimepicker" />
+                                </div>
+                                <div class="col-lg-6">
+                                    <x-io-input caption="Waktu Selesai" name="time_complete" :value="$serologi->time_complete ?? ''" :viewtype="2" class="datetimepicker" />
+                                </div>
+                            </div>
+                        @endif
+
                         <div class="my-4">
-                            <label class="form-label required">Petugas Input</label>
+                            <label class="form-label required">Dicatat Oleh</label>
                             <div class="row">
                                 <div class="col-4">
                                     <input type="hidden" name="petugas_id" id="petugas_id" value="{{ $serologi->petugas_id ?? '' }}">
@@ -53,7 +79,7 @@
                             </div>
                         </div>
                         <div class="mb-4">
-                            <label class="form-label required">Pemeriksa Serologi</label>
+                            <label class="form-label required">Dicek Oleh</label>
                             <div class="row">
                                 <div class="col-4">
                                     <input type="hidden" name="pemeriksa_serologi_id" id="pemeriksa_serologi_id" value="{{ $serologi->pemeriksa_serologi_id ?? '' }}">
@@ -61,18 +87,6 @@
                                 </div>
                                 <div class="col-8">
                                     <div class="form-text fs-5 text-dark" id="pemeriksa_serologi_nama">{{ $serologi->pemeriksaSerologi->nama ?? '-' }}</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mb-4">
-                            <label class="form-label">Diputar Oleh</label>
-                            <div class="row">
-                                <div class="col-4">
-                                    <input type="hidden" name="diputar_oleh_id" id="diputar_oleh_id" value="{{ $serologi->diputar_oleh_id ?? '' }}">
-                                    <x-input name="diputar_oleh_kode" caption="" :value="$serologi->diputarOleh->kode ?? ''" placeholder="Kode petugas" autocomplete="off" />
-                                </div>
-                                <div class="col-8">
-                                    <div class="form-text fs-5 text-dark" id="diputar_oleh_nama">{{ $serologi->diputarOleh->nama ?? '-' }}</div>
                                 </div>
                             </div>
                         </div>
@@ -101,7 +115,6 @@
                             </div>
                         </div>
 
-                
                     </div>
                 </div>
 
@@ -174,7 +187,7 @@
                             <h6 class="card-title text-muted fw-bold fs-8 text-uppercase m-0">Input Detail (Scan Barcode)</h6>
                         </div>
                         <div class="card-body px-4 pt-3 pb-4">
-                        
+
                             <div class="row g-3">
                                 <div class="col-lg-9">
                                     <x-io-input :viewtype="2" name="no_kantong" caption="No Kantong (Single)" />
@@ -200,6 +213,7 @@
                                     <thead>
                                     <tr class="text-start bg-secondary text-dark fw-bold fs-7 text-uppercase border-bottom-0">
                                         <th class="w-10px ps-4 rounded-start">#</th>
+                                        <th>No.Kantong</th>
                                         <th>Status</th>
                                         <th>Hasil</th>
                                         <th class="text-center w-50px pe-4 rounded-end">Opsi</th>
@@ -210,6 +224,7 @@
                                     @foreach($serologi->details as $detail)
                                         <tr>
                                             <td class="ps-4">{{ $no++ }}</td>
+                                            <td>{{ $detail->no_kantong }}</td>
                                             <td>
                                                 @php($detailBadge = $detail->status === 'selesai' ? 'success' : ($detail->status === 'proses' ? 'warning' : 'secondary'))
                                                 <span class="badge badge-light-{{ $detailBadge }}">{{ strtoupper($detail->status) }}</span>
@@ -245,6 +260,9 @@
 
 <script>
     init_form_element();
+
+
+
     $tanggalInput = $('#tanggal');
     if ($tanggalInput.length) {
         $tanggalInput.datepicker('destroy').datepicker({
@@ -257,6 +275,15 @@
             $(this).datepicker('show');
         });
     }
+
+    if ($('.datetimepicker').length) {
+        $('.datetimepicker').flatpickr({
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            time_24hr: true
+        });
+    }
+
     init_form({{ $serologi->id ?? '' }});
 
     petugasLookupUrl = '{{ route('serologi.transaksi_serologi.petugas_by_kode') }}';
@@ -334,11 +361,16 @@
             return html;
         }
 
-        add_batch_row = (nomor = null, jenis_periksa_serologi_id = '', metode_serologi_id = '', reagen_serologi_id = '') => {
+        add_batch_row = (nomor = null, jenis_periksa_serologi_id = '', metode_serologi_id = '', reagen_serologi_id = '', no_lot_reagen = '', tanggal_expired_reagen = '') => {
             batchIdx++;
             let defaultNomor = nomor;
             if (defaultNomor === null) {
                 defaultNomor = '{{ $generated_nomor ?? '' }}';
+            }
+
+            let defaultNoLot = no_lot_reagen;
+            if (!defaultNoLot) {
+                defaultNoLot = '{{ $generated_no_lot ?? '' }}';
             }
 
             $('#batch_rows').append(`
@@ -365,7 +397,16 @@
                         <label class="form-label fs-7 fw-semibold">Reagen</label>
                         <select name="reagen_serologi_id_list[]" class="form-select form-select-sm" required>${buildOptionHtml(reagenOptions)}</select>
                     </div>
-                    
+                </div>
+                <div class="row g-3 align-items-end mb-3 batch-row">
+                    <div class="col-lg-6">
+                        <label class="form-label fs-7 fw-semibold">Nomor Lot Reagen</label>
+                        <input type="text" name="no_lot_reagen_list[]" class="form-control form-control-sm" placeholder="Nomor Lot" value="${defaultNoLot}">
+                    </div>
+                    <div class="col-lg-6">
+                        <label class="form-label fs-7 fw-semibold">Tanggal Expired Reagen</label>
+                        <input type="text" name="tanggal_expired_reagen_list[]" class="form-control form-control-sm datepicker" placeholder="dd-mm-yyyy" autocomplete="off">
+                    </div>
                 </div>
             </div>
             `);
@@ -374,6 +415,16 @@
             $row.find('select[name="jenis_periksa_serologi_id_list[]"]').val(jenis_periksa_serologi_id);
             $row.find('select[name="metode_serologi_id_list[]"]').val(metode_serologi_id);
             $row.find('select[name="reagen_serologi_id_list[]"]').val(reagen_serologi_id);
+            $row.find('input[name="no_lot_reagen_list[]"]').val(no_lot_reagen);
+            $row.find('input[name="tanggal_expired_reagen_list[]"]').val(tanggal_expired_reagen);
+            $row.find('.datepicker-expired').datepicker({
+                autoclose: true,
+                format: 'dd-mm-yyyy',
+                orientation: 'bottom',
+                showOnFocus: false
+            });
+
+            init_form_element();
         }
 
         remove_batch_row = (id) => {
@@ -419,8 +470,13 @@
                 return;
             }
 
-            $.post(base_url + '/' + serologi_id + '/detail', {_token, no_kantong}, () => info(serologi_id))
-                .fail((xhr) => error_handle(xhr.responseText));
+            $.post(base_url + '/' + serologi_id + '/detail', {_token, no_kantong}, (result) => {
+                if (result.error) {
+                    Swal.fire({icon: 'warning', title: result.error});
+                    return;
+                }
+                info(serologi_id)
+            }).fail((xhr) => error_handle(xhr.responseText));
         }
 
         $('#no_kantong').on('keydown', function (e) {

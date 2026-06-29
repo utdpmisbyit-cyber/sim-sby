@@ -23,6 +23,8 @@ Route::middleware('auth')->group(function () {
         Route::name('penyimpanan')->prefix('penyimpanan')->group(__DIR__ . '/penyimpanan.php');
         Route::name('crossmatch')->prefix('crossmatch')->group(__DIR__ . '/crossmatch.php');
         Route::name('referal')->prefix('referal')->group(__DIR__ . '/referal.php');
+        Route::name('apheresis')->prefix('apheresis')->group(__DIR__ . '/apheresis.php');
+
 
     });
 

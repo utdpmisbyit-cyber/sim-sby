@@ -14,7 +14,7 @@ class ServiceCost extends Model
     public function jenisBiaya() { return $this->belongsTo(JenisBiaya::class, 'jenis_biaya_id'); }
     public function kelompokBiaya() { return $this->belongsTo(KelompokBiaya::class); }
      protected $casts = [
-        'biaya' => 'integer',
+        'biaya' => 'decimal:2',
     ];
 
 }

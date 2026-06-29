@@ -34,6 +34,27 @@ Route::name('.')->group(function () {
         Route::get('/{pelayananDarah}',[App\Http\Controllers\Finance\Kasir\PelayananDarahController::class, 'show'])->name('show');
         Route::get('api/harga-satuan',[App\Http\Controllers\Finance\Kasir\PelayananDarahController::class, 'hargaSatuan'])->name('harga-satuan');
     });
+
+   Route::prefix('pengembalian_biaya_crosstest')->name('pengembalian_biaya_crosstest.')->group(function () {
+ 
+        Route::get('api/next-no-retur',[App\Http\Controllers\Finance\Kasir\PengembalianBiayaCrosstestController::class, 'nextNoRetur'])->name('next-no-retur');
+        Route::get('api/scan-fpup',[App\Http\Controllers\Finance\Kasir\PengembalianBiayaCrosstestController::class, 'scanFpup'])->name('scan-fpup');
+        Route::get('api/jenis-biaya',[App\Http\Controllers\Finance\Kasir\PengembalianBiayaCrosstestController::class, 'jenisBiayaList'])->name('jenis-biaya-list');
+        Route::get('api/harga-satuan',[App\Http\Controllers\Finance\Kasir\PengembalianBiayaCrosstestController::class, 'hargaSatuan'])->name('harga-satuan');
+        Route::get('api/cari-kasir',[App\Http\Controllers\Finance\Kasir\PengembalianBiayaCrosstestController::class, 'searchKasir'])->name('cari-kasir');
+ 
+        Route::get('/',[App\Http\Controllers\Finance\Kasir\PengembalianBiayaCrosstestController::class, 'index'])->name('index');
+        Route::get('/create',[App\Http\Controllers\Finance\Kasir\PengembalianBiayaCrosstestController::class, 'create'])->name('create');
+        Route::post('/',[App\Http\Controllers\Finance\Kasir\PengembalianBiayaCrosstestController::class, 'store'])->name('store');
+        Route::get('/{pengembalianBiayaCrosstest}',[App\Http\Controllers\Finance\Kasir\PengembalianBiayaCrosstestController::class, 'show'])->name('show');
+        Route::get('/{pengembalianBiayaCrosstest}/edit',[App\Http\Controllers\Finance\Kasir\PengembalianBiayaCrosstestController::class, 'edit'])->name('edit');
+        Route::put('/{pengembalianBiayaCrosstest}',[App\Http\Controllers\Finance\Kasir\PengembalianBiayaCrosstestController::class, 'update'])->name('update');
+        Route::patch('/{pengembalianBiayaCrosstest}/status',[App\Http\Controllers\Finance\Kasir\PengembalianBiayaCrosstestController::class, 'updateStatus'])->name('update-status');
+        Route::delete('/{pengembalianBiayaCrosstest}',[App\Http\Controllers\Finance\Kasir\PengembalianBiayaCrosstestController::class, 'destroy'])->name('destroy');
+        Route::get('/{pengembalianBiayaCrosstest}/print',[App\Http\Controllers\Finance\Kasir\PengembalianBiayaCrosstestController::class, 'print'])->name('print');
+    });
+
+
 });
 Route::prefix('laporan')->name('.laporan.')->group(function () {
     ioRouteResource('posisi_keuangan', App\Http\Controllers\Finance\Laporan\PosisiKeuanganController::class);

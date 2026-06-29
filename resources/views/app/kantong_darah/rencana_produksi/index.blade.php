@@ -20,7 +20,7 @@
                     @csrf
                     <div class="d-flex flex-lg-row flex-column align-items-lg-center justify-content-lg-between gap-4">
                         <div class="d-flex flex-row gap-6 flex-grow-1">
-                            <x-input name="keyword" prefix="search_" caption="Cari Tanggal / No FPD / Tipe Kantong / No Kantong" />
+                            <x-input name="keyword" prefix="search_" caption="Cari Tanggal / No Pengiriman / Tipe Kantong / No Kantong" />
                             <x-input name="tanggal" prefix="search_" caption="Tanggal" class="datepicker" />
                         </div>
                         <button type="submit" class="btn btn-sm btn-success fw-bold border-0 fs-7 btn-flex gap-4 pe-5 justify-content-between">Cari <i class="fa fa-search"></i></button>

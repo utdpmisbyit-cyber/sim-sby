@@ -395,6 +395,5 @@
   {"kode": "Y08", "nama": "YOGI AGUNG PRIMAWARDHANA, DR", "password": "1234", "role": "User"},
   {"kode": "YOE", "nama": "Administrator", "password": "1234", "role": "User"},
   {"kode": "Z02", "nama": "ZAINUL ARIFIN", "password": "1234", "role": "User"},
-
   {"kode": "Z03", "nama": "ZAHROTI SAKINAH", "password": "1234", "role": "User"}
 ]

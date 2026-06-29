@@ -1,4 +1,26 @@
 <form id="form_info" enctype="multipart/form-data">
+    <style>
+        .satelit-btn {
+            border: 2px dashed #cbd5e1 !important;
+            background-color: #f8fafc !important;
+            color: #475569 !important;
+            transition: all 0.15s ease-in-out;
+        }
+        .satelit-btn:hover {
+            border-color: #94a3b8 !important;
+            background-color: #f1f5f9 !important;
+            color: #1e293b !important;
+        }
+        .satelit-radio-btn:checked + .satelit-btn {
+            background-color: #009ef7 !important;
+            color: #ffffff !important;
+            border-style: solid !important;
+            border-color: #0076bd !important;
+            font-weight: 800 !important;
+            box-shadow: 0 8px 15px rgba(0, 158, 247, 0.25) !important;
+            transform: scale(1.04);
+        }
+    </style>
     @csrf
     <div class="modal-header py-3 px-6">
         <h3 class="modal-title fs-5">{{ !empty($rencana_produksi) ? 'Ubah' : 'Tambah' }} Rencana Produksi</h3>
@@ -17,12 +39,16 @@
                     <div class="card-body px-4 pt-3 pb-4">
                         <x-io-input :viewtype="2" name="tanggal" caption="Tanggal" :value="formatDate($rencana_produksi->tanggal ?? date('d-m-Y'))" class="datepicker" required />
 
-                        <div class="my-4">
-                            <x-io-select :viewtype="2" name="tipe_kantong_id" caption="Tipe Kantong" :options="$tipe_kantong_options" :value="$rencana_produksi->tipe_kantong_id ?? ''" data-dropdown-parent="#modal_info" required />
-                        </div>
+                        @if(!empty($rencana_produksi->tipeKantong))
+                            <div class="my-4">
+                                <label class="form-label text-muted">Tipe Kantong</label>
+                                <div class="fw-bold text-dark fs-5">{{ $rencana_produksi->tipeKantong->nama }}</div>
+                                <input type="hidden" name="tipe_kantong_id" value="{{ $rencana_produksi->tipe_kantong_id }}">
+                            </div>
+                        @endif
 
                         <div class="my-4">
-                            <x-io-select :viewtype="2" name="pengiriman_sample_id" caption="Pengiriman Sample (No. FPD)" :options="$pengiriman_sample_options" :value="$rencana_produksi->pengiriman_sample_id ?? ''" required />
+                            <x-io-select :viewtype="2" name="pengiriman_aftap_id" caption="Pengiriman Aftap (No. Pengiriman)" :options="$pengiriman_aftap_options" :value="$rencana_produksi->pengiriman_aftap_id ?? ''" required />
                         </div>
 
                         <div class="my-4">
@@ -57,47 +83,58 @@
                 @if(!empty($rencana_produksi))
                     <div class="card card-flush border mb-4">
                         <div class="card-header min-h-40px px-4 pt-3 pb-0">
-                            <h6 class="card-title text-muted fw-bold fs-8 text-uppercase m-0">Input Detail (Scan Barcode)</h6>
+                            <h6 class="card-title text-muted fw-bold fs-8 text-uppercase m-0">Konfigurasi Satelit & Detail Rencana</h6>
                         </div>
                         <div class="card-body px-4 pt-3 pb-4">
                             @if($satelit_options->isNotEmpty())
-                                <div class="bg-light p-4 rounded mb-4 border border-secondary">
-                                    <h6 class="text-primary fw-bold mb-3"><i class="fa fa-info-circle me-2"></i>Konfigurasi Jenis Darah Per Satelit (Tipe: {{ $rencana_produksi->tipeKantong->nama }})</h6>
-                                    <div class="row g-3">
+                                <div class="card card-flush border border-primary border-dashed bg-light-primary p-5 rounded mb-5 shadow-xs">
+                                    <h6 class="text-primary fw-bolder mb-4 d-flex align-items-center gap-2">
+                                        <i class="fa fa-info-circle fs-4 text-primary"></i>
+                                        Konfigurasi Satelit (Wajib Dipilih)
+                                    </h6>
+                                    <div class="row g-4">
                                         @foreach($satelit_options as $sat)
-                                                <?php $satelit_rules = $aturan_satelits->where('satelit', $sat); ?>
+                                            <?php
+                                                $currentJenisDarah = null;
+                                                if (!empty($rencana_produksi)) {
+                                                    $existingDetail = $rencana_produksi->details->where('no_satelit', $sat)->first();
+                                                    $currentJenisDarah = $existingDetail ? $existingDetail->jenis_darah : null;
+                                                }
+                                            ?>
                                             <div class="col-md-6">
-                                                <label class="form-label fw-bold text-dark fs-7">Satelit {{ $sat }} :</label>
-                                                <select name="satelit_jenis_darah[{{ $sat }}]" id="satelit_jenis_darah_{{ $sat }}" class="form-select form-select-sm border border-primary bg-white" required>
-                                                    @foreach($satelit_rules as $rule)
-                                                        <option value="{{ $rule->jenisdarah }}">{{ $rule->jenisdarah }} (KD: {{ $rule->kdtype }})</option>
-                                                    @endforeach
-                                                </select>
+                                                <div class="bg-white border border-gray-300 rounded p-4 shadow-xs h-100">
+                                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                                        <span class="fs-6 fw-bold text-gray-800">
+                                                            Satelit {{ $sat }} <span class="text-danger fw-bold">*</span>
+                                                        </span>
+                                                        <span class="badge badge-light-danger fw-bold fs-9 px-2 py-1 satelit-status-badge-{{ $sat }}">Belum Dipilih</span>
+                                                    </div>
+                                                    <div class="d-flex flex-wrap gap-2.5">
+                                                        @foreach($mapped_satelit[$sat] as $aturan)
+                                                            <input
+                                                                type="radio"
+                                                                class="btn-check satelit-radio-btn"
+                                                                name="satelit_jenis_darah[{{ $sat }}]"
+                                                                id="satelit_jenis_darah_{{ $sat }}_{{ $aturan->id }}"
+                                                                value="{{ $aturan->jenisdarah }}"
+                                                                data-satelit="{{ $sat }}"
+                                                                autocomplete="off"
+                                                                {{ $currentJenisDarah === $aturan->jenisdarah ? 'checked' : '' }}
+                                                            >
+                                                            <label
+                                                                class="btn satelit-btn fw-bold py-2.5 px-4 fs-6 min-w-80px text-center shadow-xs cursor-pointer rounded-2"
+                                                                for="satelit_jenis_darah_{{ $sat }}_{{ $aturan->id }}"
+                                                            >
+                                                                {{ $aturan->jenisdarah }}
+                                                            </label>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
                                             </div>
                                         @endforeach
                                     </div>
                                 </div>
                             @endif
-
-                            <div class="row g-3">
-                                <div class="col-lg-9">
-                                    <x-io-input :viewtype="2" name="no_kantong" caption="No Kantong (Single)" />
-                                </div>
-                                <div class="col-lg-3">
-                                    <button class="btn btn-sm btn-primary w-100 mt-7" type="button" onclick="save_single_detail()">Tambahkan Kantong</button>
-                                </div>
-                            </div>
-                            <div id="aftap_info_box" class="alert alert-light-info mt-4 d-none">
-                                <div class="fw-bold mb-2">Info Donor & Aftap</div>
-                                <div class="row fs-7">
-                                    <div class="col-md-6 mb-2"><span class="text-muted">No Kantong:</span> <span id="aftap_no_kantong">-</span></div>
-                                    <div class="col-md-6 mb-2"><span class="text-muted">Kode Aftap:</span> <span id="aftap_kode">-</span></div>
-                                    <div class="col-md-6 mb-2"><span class="text-muted">Donor:</span> <span id="aftap_donor_nama">-</span></div>
-                                    <div class="col-md-6 mb-2"><span class="text-muted">Kode Donor:</span> <span id="aftap_donor_kode">-</span></div>
-                                    <div class="col-md-6 mb-2"><span class="text-muted">Gol. Darah:</span> <span id="aftap_donor_goldar">-</span></div>
-                                    <div class="col-md-6 mb-2"><span class="text-muted">Jenis Donor:</span> <span id="aftap_jenis_donor">-</span></div>
-                                </div>
-                            </div>
 
                             <div class="table-responsive mt-4">
                                 <table class="table align-middle table-row-dashed fs-7 table-sm">
@@ -105,41 +142,29 @@
                                     <tr class="text-start bg-secondary text-dark fw-bold fs-7 text-uppercase border-bottom-0">
                                         <th class="w-10px ps-4 rounded-start">#</th>
                                         <th>No. Kantong</th>
-                                        <th>Pilih Satelit</th>
-                                        <th class="text-center w-50px pe-4 rounded-end"></th>
+                                        <th>Satelit & Jenis Darah</th>
+                                        <th class="text-center w-80px pe-4 rounded-end">Opsi</th>
                                     </tr>
                                     </thead>
                                     <tbody>
                                     @php($no = 1)
-                                    @foreach($rencana_produksi->details as $detail)
+                                    @foreach($rencana_produksi->details->groupBy('no_kantong') as $no_kantong => $details_group)
                                         <tr>
                                             <td class="ps-4">{{ $no++ }}</td>
-                                            <td>{{ $detail->no_kantong }}</td>
-                                            <td class="p-0">
-                                                <table class="table table-borderless border-bottom border-dark">
-                                                    <tr>
-                                                        @foreach($satelit_options as $satelit)
-                                                            <td class="p-0 pe-2 border border-solid border-dark">
-                                                                @foreach($mapped_satelit[$satelit] as $aturan)
-                                                                    <input
-                                                                        type="radio"
-                                                                        class="btn-check"
-                                                                        name="satelit_{{ $detail->id }}_{{ $satelit }}"
-                                                                        id="satelit_{{ $detail->id }}_{{ $satelit }}_{{ $aturan->id }}"
-                                                                        value="{{ $aturan->id }}"
-                                                                        autocomplete="off"
-                                                                    >
-                                                                    <label
-                                                                        class="btn btn-sm btn-outline-primary me-1 mb-1"
-                                                                        for="satelit_{{ $detail->id }}_{{ $satelit }}_{{ $aturan->id }}"
-                                                                    >
-                                                                        {{ $aturan->jenisdarah }}
-                                                                    </label>
-                                                                @endforeach
-                                                            </td>
-                                                        @endforeach
-                                                    </tr>
-                                                </table>
+                                            <td class="fw-bold text-gray-800">{{ $no_kantong }}</td>
+                                            <td>
+                                                <div class="d-flex flex-wrap gap-2 py-1">
+                                                    @foreach($details_group as $detail)
+                                                        <span class="badge badge-light-primary border border-primary fs-8 px-2 py-1">
+                                                            Satelit {{ $detail->no_satelit }}: <strong class="text-dark">{{ $detail->jenis_darah }}</strong>
+                                                        </span>
+                                                    @endforeach
+                                                </div>
+                                            </td>
+                                            <td class="text-center pe-4">
+                                                <button type="button" class="btn btn-icon btn-sm btn-light-danger border border-danger border-opacity-25" onclick="confirm_delete_detail('{{ $no_kantong }}')" title="Hapus Kantong">
+                                                    <i class="fa fa-trash fs-6"></i>
+                                                </button>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -159,7 +184,7 @@
 
     <div class="modal-footer py-3 px-6">
         <button type="button" class="btn btn-sm btn-secondary me-3" onclick="init()">Batal</button>
-        <button type="submit" class="btn btn-sm btn-primary">{{ empty($rencana_produksi) ? 'Simpan Header' : 'Update Header' }}</button>
+        <button type="submit" class="btn btn-sm btn-primary">{{ empty($rencana_produksi) ? 'Simpan' : 'Update' }}</button>
     </div>
 </form>
 
@@ -178,6 +203,17 @@
         });
     }
     init_form({{ $rencana_produksi->id ?? '' }});
+
+    $('.satelit-radio-btn').on('change', function() {
+        const sat = $(this).data('satelit');
+        if ($(this).is(':checked')) {
+            $(`.satelit-status-badge-${sat}`)
+                .removeClass('badge-light-danger')
+                .addClass('badge-light-success')
+                .text('Terpilih');
+        }
+    });
+    $('.satelit-radio-btn:checked').trigger('change');
 
     petugasLookupUrl = '{{ route('kantong_darah.rencana_produksi.petugas_by_kode') }}';
 
@@ -223,124 +259,48 @@
 
     setupPetugasLookup('petugas', true);
 
-    sampleInfoUrl = '{{ route('kantong_darah.rencana_produksi.pengiriman_sample_info', ['id' => ':id']) }}';
-
-    $('#pengiriman_sample_id').on('change', function () {
-        const sampleId = $(this).val();
-        if (!sampleId) {
-            $('#tipe_kantong_id').val('').trigger('change');
-            return;
-        }
-
-        const url = sampleInfoUrl.replace('%3Aid', sampleId).replace(':id', sampleId);
-        $.get(url, (res) => {
-            if (res.tipe_kantong_id) {
-                $('#tipe_kantong_id').val(res.tipe_kantong_id).trigger('change');
-            } else {
-                $('#tipe_kantong_id').val('').trigger('change');
-            }
-        }).fail(() => {
-            $('#tipe_kantong_id').val('').trigger('change');
-        });
-    });
-
     $('#form_info').on('submit', function (e) {
         if (!$('#petugas_id').val()) {
             e.preventDefault();
             Swal.fire({icon: 'warning', title: 'Kode Petugas Input tidak valid'});
             return;
         }
+
+        @if(!empty($rencana_produksi))
+            const satelit_jenis_darah = {};
+            $('input[name^="satelit_jenis_darah"]:checked').each(function() {
+                const name = $(this).attr('name');
+                const match = name.match(/\[(\d+)\]/);
+                if (match) {
+                    const sat = match[1];
+                    satelit_jenis_darah[sat] = $(this).val();
+                }
+            });
+
+            const satelit_keys = [];
+            @if(!empty($satelit_options))
+                @foreach($satelit_options as $sat)
+                    satelit_keys.push('{{ $sat }}');
+                @endforeach
+            @endif
+
+            for (const sat of satelit_keys) {
+                if (!satelit_jenis_darah[sat]) {
+                    e.preventDefault();
+                    Swal.fire({icon: 'warning', title: `Satelit ${sat} belum dipilih`});
+                    return;
+                }
+            }
+        @endif
     });
 
     @if(!empty($rencana_produksi))
-        rencana_produksi_id = '{{ $rencana_produksi->id }}';
-    aftapInfoUrl = `{{ route('kantong_darah.rencana_produksi.detail.aftap_info', ['rencana_produksi' => $rencana_produksi->id]) }}`;
+    rencana_produksi_id = '{{ $rencana_produksi->id }}';
 
-    clear_aftap_info = () => {
-        $('#aftap_info_box').addClass('d-none');
-        $('#aftap_no_kantong, #aftap_kode, #aftap_donor_nama, #aftap_donor_kode, #aftap_donor_goldar, #aftap_jenis_donor').text('-');
-    }
-
-    load_aftap_info = (no_kantong) => {
-        if (!no_kantong) {
-            clear_aftap_info();
-            return;
-        }
-
-        $.get(aftapInfoUrl, { no_kantong }, (res) => {
-            if (res.error) {
-                clear_aftap_info();
-                return;
-            }
-            $('#aftap_info_box').removeClass('d-none');
-            $('#aftap_no_kantong').text(res.no_kantong || '-');
-            $('#aftap_kode').text(res.kode_aftap || '-');
-            $('#aftap_donor_nama').text(res.donor?.nama || '-');
-            $('#aftap_donor_kode').text(res.donor?.kode || '-');
-            const goldar = res.donor ? `${res.donor.golongan_darah || ''}${res.donor.rhesus || ''}` : '-';
-            $('#aftap_donor_goldar').text(goldar || '-');
-            $('#aftap_jenis_donor').text(res.jenis_donor || '-');
-        }).fail(() => {
-            clear_aftap_info();
-        });
-    }
-
-    save_single_detail = () => {
-        const no_kantong = $('#no_kantong').val();
-        if (!no_kantong) {
-            Swal.fire({icon: 'warning', title: 'No kantong wajib diisi'});
-            return;
-        }
-
-        const satelit_jenis_darah = {};
-        $('select[name^="satelit_jenis_darah"]').each(function() {
-            const name = $(this).attr('name');
-            const match = name.match(/\\[(\\d+)\\]/);
-            if (match) {
-                const sat = match[1];
-                satelit_jenis_darah[sat] = $(this).val();
-            }
-        });
-
-        $.post(base_url + '/' + rencana_produksi_id + '/detail', {
-            _token,
-            no_kantong,
-            satelit_jenis_darah
-        }, (result) => {
-            if (result.error) {
-                Swal.fire({icon: 'warning', title: result.error});
-                return;
-            }
-            info(rencana_produksi_id);
-        }).fail((xhr) => error_handle(xhr.responseText));
-    }
-
-    $('#no_kantong').on('keydown', function (e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            save_single_detail();
-        }
-    });
-    $('#no_kantong').on('blur', function () {
-        load_aftap_info($(this).val());
-    });
-
-    save_result = (detailId) => {
-        const no_satelit = $('#no_satelit_' + detailId).val();
-        const jenis_darah = $('#jenis_darah_' + detailId).val();
-
-        $.post(base_url + '/' + rencana_produksi_id + '/detail/' + detailId, {
-            _token,
-            _method: 'put',
-            no_satelit,
-            jenis_darah
-        }, () => info(rencana_produksi_id)).fail((xhr) => error_handle(xhr.responseText));
-    }
-
-    confirm_delete_detail = (id) => {
+    confirm_delete_detail = (no_kantong) => {
         Swal.fire(swal_delete_params).then((result) => {
             if (result.isConfirmed) {
-                $.post(base_url + '/' + rencana_produksi_id + '/detail/' + id, {_token, _method: 'delete'}, () => info(rencana_produksi_id))
+                $.post(base_url + '/' + rencana_produksi_id + '/detail/' + encodeURIComponent(no_kantong), {_token, _method: 'delete'}, () => info(rencana_produksi_id))
                     .fail((xhr) => error_handle(xhr.responseText));
             }
         });

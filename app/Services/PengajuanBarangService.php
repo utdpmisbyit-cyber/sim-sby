@@ -13,5 +13,6 @@ class PengajuanBarangService extends IoService
         $this->model = new PengajuanBarang();
         $this->sort_by = ['tgl_pengajuan' => 'desc'];
         $this->filters = ['kode', 'jenis_pengajuan', 'status', 'cabang_id', 'petugas_id', 'barang_id','bagian_id'];
+        $this->with = ['barang', 'cabang', 'permintaanLogistik'];
     }
 }

@@ -36,4 +36,5 @@ class CetakUlangBarcodeController extends Controller
 
         return response()->json($rows);
     }
+    
 }

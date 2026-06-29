@@ -45,7 +45,7 @@
 
     /* ── Main Card ── */
     .label-inner {
-        width: 37mm; /* samakan dengan barcode */
+        width: 37mm;
         margin: 0 auto;
         display: flex;
         flex-direction: column;
@@ -127,6 +127,7 @@
     /* ── Action Buttons ── */
     .btn-action-row {
         display: flex;
+        align-items: center;
         gap: .6rem;
         justify-content: flex-end;
         padding-top: 1rem;
@@ -153,6 +154,8 @@
     .btn-stop:hover { background: #475569; }
     .btn-save   { background: #f59e0b; color: #fff; }
     .btn-save:hover { background: #d97706; }
+    .btn-save:disabled,
+    .btn-print:disabled { opacity: .5; cursor: not-allowed; }
     .btn-print  { background: var(--pmi-red); color: #fff; }
     .btn-print:hover { background: #a30c24; }
 
@@ -245,6 +248,32 @@
     }
     .btn-del:hover { background: #fef2f2; }
 
+    /* ── Duplicate Warning ── */
+    .pk-table tbody tr.row-bentrok { background: #fef2f2 !important; }
+    .badge-bentrok {
+        background: #fee2e2;
+        color: #b91c1c;
+        border-radius: 4px;
+        padding: .15rem .5rem;
+        font-size: .72rem;
+        font-weight: 700;
+        font-family: var(--mono);
+        display: inline-flex;
+        align-items: center;
+        gap: .3rem;
+        white-space: nowrap;
+    }
+    .save-warning {
+        font-size: .75rem;
+        color: var(--pmi-red);
+        font-weight: 600;
+        margin-right: auto;
+        display: none;
+        align-items: center;
+        gap: .4rem;
+    }
+    .save-warning.show { display: inline-flex; }
+
     /* ── Loading Spinner ── */
     #loading-overlay {
         display: none;
@@ -291,93 +320,139 @@
     #toast.show { opacity: 1; transform: translateY(0); }
     #toast.error { border-left-color: var(--pmi-red); }
 
- /* ── Print Styles ── */
-/* ── Print Styles ── */
-/* ── Print Styles ── */
-@media print {
-    * {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
+    /* ════════════════════════════════════════════
+       PRINT STYLES — SATU SUMBER KEBENARAN
+       Ukuran fisik label: 40mm x 20mm (sesuai fisik di lapangan)
+       ════════════════════════════════════════════ */
+    @media print {
+        html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 40mm !important;
+            height: auto !important;
+            overflow: visible !important;
+        }
+        * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        body * { visibility: hidden !important; }
+        #print-area, #print-area * { visibility: visible !important; }
+        #print-area {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 40mm !important;
+            background: #fff !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            z-index: 99999 !important;
+        }
+        @page {
+            size: 40mm 20mm;
+            margin: 0 !important;
+        }
     }
-    body * { visibility: hidden !important; }
-    #print-area, #print-area * { visibility: visible !important; }
-    #print-area {
-        position: fixed !important;
-        inset: 0 !important;
-        width: 40mm !important;
-        background: #fff !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        z-index: 99999 !important;
+
+    #print-area { display: none; }
+
+    /* ── Page-break holder ──
+       FIX GARIS PUTUS (v3): dua percobaan sebelumnya salah asumsi.
+       v1: .label-cut absolute bottom:0 -- nempel di ujung PALING BAWAH
+           label-page (19mm), padahal konten aslinya jauh lebih pendek
+           -> muncul gap kosong besar antara footer & garis.
+       v2: .label-gap (flex:1, center) -- nge-center garis di TENGAH
+           sisa ruang kosong itu, tapi ternyata yang dibutuhkan (lihat
+           foto referensi fisik) bukan di tengah, melainkan RAPAT
+           langsung di bawah footer, jarak kecil & fixed.
+       v3 (sekarang): height:19mm DIHAPUS dari .label-page -- tinggi
+       kertas mengikuti konten asli (.label-wrap) + jarak kecil ke
+       .label-cut, bukan dipaksa fixed. Garis jadi rapat seperti foto. */
+    .label-page {
+        width: 40mm;
+        overflow: hidden;
+        page-break-after: always;
+        break-after: page;
+        page-break-inside: avoid;
+        break-inside: avoid;
+        display: flex;
+        flex-direction: column;
     }
-    @page {
-        size: 40mm 20mm;
-        margin: 0 !important;
+
+    /* ── Layout visual konten label (title+barcode+footer) saja ── */
+    .label-wrap {
+        width: 100%;
+        /* height:100% tetap dihapus -- tinggi wrap = tinggi konten asli
+           saja (title+barcode+footer), tidak dipaksa mengisi label-page. */
+        flex: 0 0 auto;
+        padding: 1.2mm 1.5mm 0.8mm 1.5mm;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        overflow: hidden;
+        background: #fff;
     }
-}
 
-#print-area { display: none; }
+    .label-title {
+        font-size: 5.5pt;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-align: left;
+        line-height: 1;
+        flex-shrink: 0;
+        margin-bottom: 0.5mm;
+        padding: 0 0.5mm;
+        font-family: 'IBM Plex Mono', monospace;
+    }
 
-.label-wrap {
-    width: 40mm;
-    height: 19mm;
-    padding: 1.2mm 1.5mm 0.8mm 1.5mm;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    overflow: hidden;
-    background: #fff;
-     page-break-after: always;
-    break-after: page;
-}
+    .label-barcode {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        padding: 0.5mm 0;
+        height: 11mm;
+    }
 
-.label-title {
-    font-size: 5.5pt;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-align: center;
-    line-height: 1;
-    flex-shrink: 0;
-    margin-bottom: 0.5mm;
-    font-family: 'IBM Plex Mono', monospace;
-}
+    .label-barcode svg {
+        display: block;
+        width: 37mm !important;
+        height: 11mm !important;
+    }
 
-.label-barcode {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    padding: 0.5mm 0;
-    height: 11mm;
-}
+    .label-foot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 6pt;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        font-family: 'IBM Plex Mono', monospace;
+        margin-top: 0.3mm;
+        padding: 0 0.5mm;
+        line-height: 1;
+        flex-shrink: 0;
+    }
+    .label-foot .left { text-align: left; }
+    .label-foot .right { text-align: right; }
 
-.label-barcode svg {
-    display: block;
-    width: 37mm !important;
-    height: 11mm !important;
-}
-
-.label-foot {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 6pt;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    font-family: 'IBM Plex Mono', monospace;
-    margin-top: 0.3mm;
-    padding: 0 0.5mm;
-    line-height: 1;
-    flex-shrink: 0;
-}
-.label-foot .left {
-    text-align: left;
-}
-
-.label-foot .right {
-    text-align: right;
-}
+    /* Garis putus — dipakai HANYA setelah semua duplikat satu no_kantong
+       selesai (lihat JS), dan tidak pernah pada label paling akhir di
+       seluruh batch. Sekarang ditempel LANGSUNG sebagai child .label-page
+       setelah .label-wrap, dengan jarak KECIL & FIXED (margin-top) --
+       BUKAN di-center di ruang kosong besar (lihat catatan v3 di atas).
+       Sesuaikan margin-top di bawah kalau hasil cetak fisik masih
+       kurang/lebih rapat dibanding foto referensi. */
+    .label-cut {
+        width: 40mm;
+        height: 0;
+        margin: 1mm 0 0 0;
+        border-top: 1.5px dashed #555;
+    }
+    @media print {
+        .label-cut { border-top: 1.5px dashed #000; }
+    }
 </style>
 @endpush
 
@@ -457,7 +532,7 @@
                     </div>
                     <div class="fgroup">
                         <label>Duplikat (lembar/kantong)</label>
-                        <input type="number" name="duplikat" id="duplikat" min="0" max="10" value="0" required>
+                        <input type="number" name="duplikat" id="duplikat" min="1" max="10" value="1" required>
                         <div class="hint">Jumlah label per nomor kantong</div>
                     </div>
                     <div class="fgroup">
@@ -479,6 +554,10 @@
                         <div class="jumlah-badge" id="total-label">0</div>
                     </div>
                     <div class="btn-action-row" style="border:none; padding:0; margin:0;">
+                        <span class="save-warning" id="save-warning">
+                            <i class="fas fa-triangle-exclamation"></i>
+                            Ada nomor kantong bentrok — hapus baris itu sebelum Simpan
+                        </span>
                         <button type="button" class="btn-pk btn-run" id="btn-run">
                             <i class="fas fa-running"></i> Run
                         </button>
@@ -546,15 +625,17 @@
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    
 
     /* ───── State ───── */
     let generatedRows = [];
     let running = false;
+    let lastUsedSeq = 0;
+    let lastUsedPrefix = '';
 
     /* ───── Helpers ───── */
     const $ = id => document.getElementById(id);
     const pad  = (n, len) => String(n).padStart(len, '0');
+
     /* ───── Mapping Jenis → Type (dari PHP) ───── */
     const jenisTypeMap = @json($jenis_type_map);
 
@@ -565,17 +646,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /* ───── Filter type saat jenis berubah ───── */
     document.getElementById('jenis_kantong').addEventListener('change', function () {
-        const selected  = this.value.trim();                    // e.g. "Apheresis"
+        const selected  = this.value.trim();
         const typeSelect = document.getElementById('type_kantong');
-        const allowed   = jenisTypeMap[selected] || null;       // array atau null
+        const allowed   = jenisTypeMap[selected] || null;
 
-        // Reset type & ukuran
         typeSelect.innerHTML = '<option value="">— Pilih Type —</option>';
         typeSelect.value = '';
 
         allTypeOptions.forEach(opt => {
             if (!opt.value) return;
-            // Cocokkan case-insensitive
             const match = !allowed || allowed.some(
                 a => a.toLowerCase() === opt.value.toLowerCase()
             );
@@ -587,12 +666,10 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        // Auto-select jika hanya 1 pilihan
         if (typeSelect.options.length === 2) {
             typeSelect.selectedIndex = 1;
         }
     });
-
 
     function today() {
         const d = new Date();
@@ -604,16 +681,7 @@ document.addEventListener('DOMContentLoaded', function () {
         };
     }
 
-    function getNextSeq() {
-        // Fetch from server OR use local counter
-        return fetch('{{ route("gudang.pendataan_kantong.next-seq") }}')
-            .then(r => r.json())
-            .then(d => d.next_seq)
-            .catch(() => 1);
-    }
-
     function makeNoKantong(yy, mm, seq) {
-         // Format: YYMM + 4 digit sequence
         return `${yy}${mm}${pad(seq, 4)}`;
     }
 
@@ -638,6 +706,26 @@ document.addEventListener('DOMContentLoaded', function () {
     $('duplikat').addEventListener('input', updateTotal);
     updateTotal();
 
+    /* ───── Cek nomor kantong yang sudah pernah dipakai di DB ───── */
+    async function checkBentrok(kodeList) {
+        if (kodeList.length === 0) return [];
+        try {
+            const res = await fetch('{{ route("gudang.pendataan_kantong.check-duplicate") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+                body: JSON.stringify({ kodes: kodeList })
+            });
+            const data = await res.json();
+            return data.bentrok || [];
+        } catch (e) {
+            console.error('Gagal cek bentrok:', e);
+            return [];
+        }
+    }
+
     /* ───── Render table row ───── */
     function renderTable() {
         const tbody = $('tbl-body');
@@ -648,7 +736,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         $('row-count').textContent = generatedRows.length + ' baris';
         tbody.innerHTML = generatedRows.map((r, i) => `
-            <tr>
+            <tr class="${r.isBentrok ? 'row-bentrok' : ''}">
                 <td>${i + 1}</td>
                 <td class="text-normal">${r.merk || '—'}</td>
                 <td class="text-normal">${r.jenis}</td>
@@ -658,7 +746,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 <td>${r.no_lot}</td>
                 <td><span class="badge-nat">T</span></td>
                 <td>${r.type}</td>
-                <td><span class="badge-no">${r.no_kantong}</span></td>
+                <td>${r.isBentrok
+                    ? `<span class="badge-bentrok" title="Nomor ini sudah ada di database"><i class="fas fa-triangle-exclamation"></i> ${r.no_kantong}</span>`
+                    : `<span class="badge-no">${r.no_kantong}</span>`}</td>
                 <td>${r.duplikat}</td>
                 <td class="td-action">
                     <button class="btn-del" onclick="deleteRow(${i})" title="Hapus">
@@ -676,10 +766,14 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     function toggleButtons() {
-        const has = generatedRows.length > 0;
-        $('btn-save').disabled  = !has;
-        $('btn-print').disabled = !has;
-      
+        const has        = generatedRows.length > 0;
+        const hasBentrok = generatedRows.some(r => r.isBentrok);
+
+        $('btn-save').disabled         = !has || hasBentrok;
+        $('btn-print').disabled        = !has;
+        $('btn-print-direct').disabled = !has;
+
+        $('save-warning').className = hasBentrok ? 'save-warning show' : 'save-warning';
     }
 
     /* ───── RUN ───── */
@@ -701,16 +795,21 @@ document.addEventListener('DOMContentLoaded', function () {
         $('btn-run').disabled  = true;
 
         try {
-            const res  = await fetch('{{ route("gudang.pendataan_kantong.next-seq") }}');  
-            const data = await res.json();
-            let seq    = data.next_seq || 1;
-
             const dt = today();
-            generatedRows = [];
+            const currentPrefix = dt.yyyy.toString().slice(2) + dt.mm; // YYMM
+
+            let seq;
+            if (lastUsedSeq > 0 && lastUsedPrefix === currentPrefix) {
+                seq = lastUsedSeq + 1;
+            } else {
+                const res  = await fetch('{{ route("gudang.pendataan_kantong.next-seq") }}');
+                const data = await res.json();
+                seq = data.next_seq || 1;
+            }
 
             for (let i = 0; i < jumlah; i++) {
                 if (!running) break;
-                const noKantong = makeNoKantong(dt.yyyy.toString().slice(2), dt.mm, seq + i);
+                const noKantong = makeNoKantong(currentPrefix.slice(0, 2), currentPrefix.slice(2), seq + i);
                 generatedRows.push({
                     merk, jenis, type, vol,
                     tgl: dt.display,
@@ -718,15 +817,30 @@ document.addEventListener('DOMContentLoaded', function () {
                     no_lot,
                     no_kantong: noKantong,
                     duplikat: dup,
+                    isBentrok: false,
                 });
-                // Update preview in real-time
                 $('no_kantong_preview').value = noKantong;
                 renderTable();
                 updateTotal();
-                await new Promise(r => setTimeout(r, 30)); // small delay for UX
+                await new Promise(r => setTimeout(r, 30));
             }
 
-            showToast(`${generatedRows.length} nomor kantong berhasil digenerate!`);
+            lastUsedSeq    = seq + jumlah - 1;
+            lastUsedPrefix = currentPrefix;
+
+            const batchBaru     = generatedRows.slice(-jumlah);
+            const kodeBatchBaru = batchBaru.map(r => r.no_kantong);
+            const bentrok       = await checkBentrok(kodeBatchBaru);
+
+            if (bentrok.length > 0) {
+                batchBaru.forEach(r => {
+                    if (bentrok.includes(r.no_kantong)) r.isBentrok = true;
+                });
+                showToast(`⚠️ ${bentrok.length} no kantong SUDAH PERNAH dipakai: ${bentrok.join(', ')}. Hapus baris ini sebelum Simpan!`, true);
+            } else {
+                showToast(`${jumlah} nomor kantong berhasil ditambahkan! Total sekarang: ${generatedRows.length}`);
+            }
+
         } catch(e) {
             showToast('Gagal generate: ' + e.message, true);
         } finally {
@@ -741,6 +855,12 @@ document.addEventListener('DOMContentLoaded', function () {
     /* ───── SAVE ───── */
     $('btn-save').addEventListener('click', async function () {
         if (generatedRows.length === 0) return;
+
+        if (generatedRows.some(r => r.isBentrok)) {
+            showToast('Masih ada nomor kantong yang bentrok. Hapus dulu sebelum Simpan!', true);
+            return;
+        }
+
         setLoading(true);
         try {
             const res = await fetch('{{ route("gudang.pendataan_kantong.store-batch") }}', {
@@ -754,7 +874,23 @@ document.addEventListener('DOMContentLoaded', function () {
             const data = await res.json();
             if (data.success) {
                 showToast(`${data.saved} data berhasil disimpan!`);
+                generatedRows  = [];
+                lastUsedSeq    = 0;
+                lastUsedPrefix = '';
+                renderTable();
+                toggleButtons();
             } else {
+                if (data.message) {
+                    const match = data.message.match(/:\s*(.+)$/);
+                    if (match) {
+                        const kodeBentrok = match[1].split(',').map(s => s.trim());
+                        generatedRows.forEach(r => {
+                            if (kodeBentrok.includes(r.no_kantong)) r.isBentrok = true;
+                        });
+                        renderTable();
+                        toggleButtons();
+                    }
+                }
                 showToast(data.message || 'Gagal menyimpan.', true);
             }
         } catch(e) {
@@ -764,195 +900,106 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    /* ───── PRINT preview ───── */
-/* ───── PRINT preview ───── */
-$('btn-print').addEventListener('click', function () {
-    if (generatedRows.length === 0) return;
+    /* ════════════════════════════════════════════════════════
+       BUILD PRINT AREA — SATU SUMBER KEBENARAN UNTUK SEMUA PRINT
 
-    const barcodes = [];
-    const tipe = generatedRows[0]?.type || '';
+       FIX GARIS PUTUS (v3): dua percobaan sebelumnya (absolute bottom:0,
+       lalu flex:1+center via .label-gap) salah asumsi soal SEBERAPA JAUH
+       garis dari konten. Sesuai foto referensi fisik, garis putus harus
+       RAPAT langsung di bawah footer (.label-wrap) dengan jarak kecil &
+       fixed (CSS margin-top pada .label-cut) -- bukan di tengah ruang
+       kosong besar. .label-gap dihapus; .label-cut sekarang ditempel
+       LANGSUNG sebagai child .label-page, persis setelah .label-wrap.
+       ════════════════════════════════════════════════════════ */
+    function buildPrintArea() {
+        const area = $('print-area');
+        area.innerHTML = '';
 
-    generatedRows.forEach(row => {
-        for (let d = 0; d < row.duplikat; d++) {
-            barcodes.push(row.no_kantong);
+        generatedRows.forEach((row, rowIndex) => {
+            const isLastRow = rowIndex === generatedRows.length - 1;
+
+            for (let d = 0; d < row.duplikat; d++) {
+                const isLastDuplikat = d === row.duplikat - 1;
+
+                // Pembungkus luar — flex column, pemegang page-break.
+                const page = document.createElement('div');
+                page.className = 'label-page';
+
+                // Konten label asli (title + barcode + footer).
+                const wrap = document.createElement('div');
+                wrap.className = 'label-wrap';
+
+                const title = document.createElement('div');
+                title.className = 'label-title';
+                title.textContent = 'UDD PMI KOTA SBY';
+                wrap.appendChild(title);
+
+                const barcodeDiv = document.createElement('div');
+                barcodeDiv.className = 'label-barcode';
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                barcodeDiv.appendChild(svg);
+                wrap.appendChild(barcodeDiv);
+
+                const foot = document.createElement('div');
+                foot.className = 'label-foot';
+                foot.innerHTML = `<span class="left">${row.no_kantong}</span><span class="right">${row.type}</span>`;
+                wrap.appendChild(foot);
+
+                page.appendChild(wrap);
+
+                // Garis putus ditempel LANGSUNG sebagai child .label-page,
+                // tepat setelah .label-wrap -- jarak kecil & fixed dari
+                // CSS margin-top, bukan di-center di ruang kosong besar.
+                // HANYA disisipkan setelah duplikat TERAKHIR untuk 1
+                // no_kantong, dan TIDAK pada label paling akhir di
+                // seluruh batch.
+                if (isLastDuplikat && !isLastRow) {
+                    const cut = document.createElement('div');
+                    cut.className = 'label-cut';
+                    page.appendChild(cut);
+                }
+
+                area.appendChild(page);
+
+                JsBarcode(svg, row.no_kantong, {
+                    format: 'CODE128',
+                    width: 1.6,
+                    height: 28,
+                    displayValue: false,
+                    margin: 0,
+                    lineColor: '#000'
+                });
+            }
+        });
+
+        // Matikan break-after pada kertas paling akhir, supaya tidak
+        // nyangkut 1 halaman kosong di ujung dokumen.
+        const allPages = area.querySelectorAll('.label-page');
+        if (allPages.length > 0) {
+            const lastPage = allPages[allPages.length - 1];
+            lastPage.style.pageBreakAfter = 'avoid';
+            lastPage.style.breakAfter = 'avoid';
         }
+    }
+
+    /* ───── PREVIEW / PRINT (browser print dialog) ───── */
+    $('btn-print').addEventListener('click', function () {
+        if (generatedRows.length === 0) return;
+        buildPrintArea();
+        $('print-area').style.display = 'block';
+        setTimeout(() => window.print(), 150);
     });
 
-    const labelsHtml = barcodes.map(code => `
-        <div class="label">
-            <div class="row header">
-                <div class="left">UDD PMI KOTA SBY</div>
-                <div class="right">${tipe}</div>
-            </div>
-            <div class="barcode-wrap">
-                <svg class="barcode"></svg>
-            </div>
-            <div class="row footer">
-                <div class="left code-text">${code}</div>
-                <div class="right">${tipe}</div>
-            </div>
-        </div>
-    `).join('');
-
-    const printWin = window.open('', '_blank',
-        'width=400,height=600,toolbar=0,scrollbars=0,status=0,menubar=0'
-    );
-
-    printWin.document.write(`<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<style>
-@media print {
-    @page { size: 50mm 25mm; margin: 0; }
-}
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-    margin: 0;
-    font-family: monospace;
-}
-.label {
-    width: 50mm;
-    height: 25mm;
-    padding: 2mm;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    page-break-after: always;
-}
-.row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 9pt;
-    font-weight: bold;
-}
-.barcode-wrap {
-    display: flex;
-    justify-content: center;
-}
-svg {
-    width: 42mm;
-    height: 10mm;
-}
-.code-text {
-    font-size: 11pt;
-    letter-spacing: 1px;
-}
-</style>
-</head>
-<body>
-${labelsHtml}
-</body>
-</html>`);
-
-    const script = printWin.document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js';
-    script.onload = function () {
-        const svgs = printWin.document.querySelectorAll('.barcode');
-        svgs.forEach((svg, index) => {
-            JsBarcode(svg, barcodes[index], {
-                format: 'CODE128',
-                displayValue: false,
-                width: 1.8,
-                height: 40,
-                margin: 0,
-            });
-        });
-        printWin.print();
-        printWin.close();
-    };
-    printWin.document.body.appendChild(script);
-    printWin.document.close();
-});
-    /* ───── PRINT LANGSUNG SATO ───── */
-    $('btn-print-direct').addEventListener('click', async function () {
+    /* ───── PRINT SATO ───── */
+    $('btn-print-direct').addEventListener('click', function () {
         if (generatedRows.length === 0) {
             showToast("Tidak ada data untuk dicetak", true);
             return;
         }
-
-        setLoading(true);
-
-        try {
-            const res = await fetch('{{ route("gudang.pendataan_kantong.print-direct") }}', {
-                method: 'POST',
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
-                },
-                body: JSON.stringify({ rows: generatedRows })
-            });
-
-            const data = await res.json();
-
-            if (data.success) {
-                showToast("Label berhasil dikirim ke printer!");
-            } else {
-                showToast(data.message || "Gagal print", true);
-            }
-
-        } catch (e) {
-            showToast("Print error: " + e.message, true);
-        }
-
-        setLoading(false);
+        buildPrintArea();
+        $('print-area').style.display = 'block';
+        setTimeout(() => window.print(), 150);
     });
-
-  function buildPrintArea() {
-    const area = $('print-area');
-    area.innerHTML = '';
-    area.style.display = 'block';
-
-    generatedRows.forEach((row, rowIdx) => {
-        for (let d = 0; d < row.duplikat; d++) {
-
-            // Label wrap
-            const wrap = document.createElement('div');
-            wrap.className = 'label-wrap';
-
-            // Title
-            const title = document.createElement('div');
-            title.className = 'label-title';
-            title.textContent = 'UDD PMI KOTA SBY';
-            wrap.appendChild(title);
-
-            // Barcode
-            const barcodeDiv = document.createElement('div');
-            barcodeDiv.className = 'label-barcode';
-            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-            barcodeDiv.appendChild(svg);
-            wrap.appendChild(barcodeDiv);
-
-            // Footer
-            const foot = document.createElement('div');
-            foot.className = 'label-foot';
-            foot.innerHTML = `<span>${row.no_kantong}</span><span>${row.type}</span>`;
-            wrap.appendChild(foot);
-
-            area.appendChild(wrap);
-
-            // Garis pemutus
-            const cut = document.createElement('div');
-            cut.className = 'label-cut';
-            area.appendChild(cut);
-
-            JsBarcode(svg, row.no_kantong, {
-                format: 'CODE128',
-                width: 1.2,
-                height: 26,
-                displayValue: false,
-                margin: 0,
-                lineColor: "#000"
-            });
-        }
-    });
-
-    // Hapus garis terakhir
-    const cuts = area.querySelectorAll('.label-cut');
-    if (cuts.length > 0) cuts[cuts.length - 1].remove();
-}
 
     /* ───── After print cleanup ───── */
     window.addEventListener('afterprint', function () {

@@ -8,15 +8,15 @@ class RencanaProduksi extends Model
 {
     protected $table = 'rencana_produksi';
     protected $fillable = [
-        'pengiriman_sample_id',
+        'pengiriman_aftap_id',
         'tanggal',
         'petugas_id',
         'tipe_kantong_id',
     ];
 
-    public function pengirimanSample()
+    public function pengirimanAftap()
     {
-        return $this->belongsTo(PengirimanSample::class, 'pengiriman_sample_id');
+        return $this->belongsTo(PengirimanAftap::class, 'pengiriman_aftap_id');
     }
 
     public function tipeKantong()

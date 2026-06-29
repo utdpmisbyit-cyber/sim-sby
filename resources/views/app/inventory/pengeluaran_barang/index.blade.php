@@ -15,7 +15,7 @@ Inventory - Pengeluaran Barang
                     </h1>
                     @include('layouts._breadcrumb')
                 </div>
-                <!-- <button type="button" onclick="info()" class="btn btn-sm btn-primary fw-bold border-0 fs-7">Tambah Permintaan</button> -->
+                <button type="button" onclick="info()" class="btn btn-sm btn-primary fw-bold border-0 fs-7">Tambah Permintaan</button>
             </div>
 
             <form id="form_search" class="w-100 mt-4 bg-gray-200 border-solid border-2 border-gray-300 rounded-2 px-5 py-4">

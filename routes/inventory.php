@@ -4,7 +4,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::view('/','app.inventory.index');
 Route::name('.')->group(function () {
-    ioRouteResource('pengajuan_barang', App\Http\Controllers\Inventory\PermintaanController::class);
+
+    Route::get('permintaan_barang_logistik/get-pengajuan/{id}', [App\Http\Controllers\Gudang\PermintaanBarangLogistikController::class, 'getPengajuan'])->name('permintaan_barang_logistik.get_pengajuan');
+    Route::get('permintaan_barang_logistik/find-pengajuan', [App\Http\Controllers\Gudang\PermintaanBarangLogistikController::class, 'findPengajuan'])->name('permintaan_barang_logistik.find_pengajuan');
+
     ioRouteResource('barang', App\Http\Controllers\Inventory\BarangController::class);
     ioRouteResource('kelompok_barang', App\Http\Controllers\Inventory\KelompokBarangController::class);
     ioRouteResource('supplier', App\Http\Controllers\Inventory\SupplierController::class);
@@ -18,4 +21,6 @@ Route::name('.')->group(function () {
     ioRouteResource('pinjam_barang', App\Http\Controllers\Inventory\PinjamBarangController::class);
     ioRouteResource('retur_pinjam', App\Http\Controllers\Inventory\ReturPinjamController::class);
     ioRouteResource('opname_barang', App\Http\Controllers\Inventory\OpnameBarangController::class);
+    ioRouteResource('permintaan_barang_logistik', App\Http\Controllers\inventory\PermintaanBarangLogistikController::class);
+
 });

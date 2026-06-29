@@ -31,6 +31,7 @@ class SerologiController extends IoResourceController
     {
         view()->share('generated_nomor', $this->service->generateNomor());
         view()->share('generated_group', $this->service->generateGroupCode());
+        view()->share('generated_no_lot', $this->service->generateNoLot());
         return parent::create();
     }
 
@@ -47,7 +48,9 @@ class SerologiController extends IoResourceController
 
         $request->merge([
             'status' => 'pending',
+            'time_in' => now(),
             'nomor' => $request->input('nomor') ?: $this->service->generateNomor(),
+            'no_lot_reagen' => $request->input('no_lot_reagen') ?: $this->service->generateNoLot(),
             'group' => $request->input('group') ?: $this->service->generateGroupCode(),
         ]);
 

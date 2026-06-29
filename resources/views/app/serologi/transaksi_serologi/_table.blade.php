@@ -9,11 +9,9 @@
             <th>Jenis Periksa</th>
             <th>Metode Periksa</th>
             <th>Reagen</th>
-            <th>Petugas</th>
-            <th>Pemeriksa</th>
-            <th>Diputar</th>
-            <th>Diperiksa</th>
-            <th>Disahkan</th>
+            <th>No. Lot Reagen</th>
+            <th>Tgl Expired Reagen</th>
+            <th>Dicatat</th>
             <th class="text-center">Jumlah Detail</th>
             <th class="text-center">Selesai</th>
             <th class="text-center">Status</th>
@@ -34,20 +32,18 @@
                 <td>
                     <span class="badge badge-light-info">{{ $item->group ?? '-' }}</span>
                 </td>
-                <td>{{ formatDate($item->tanggal) }}</td>
+                <td class="text-nowrap">{{ formatDate($item->tanggal) }}</td>
                 <td>{{ $item->jenisPeriksaSerologi->nama ?? '-' }}</td>
                 <td>{{ $item->metodeSerologi->nama ?? '-' }}</td>
                 <td>{{ $item->reagenSerologi->nama ?? '-' }}</td>
+                <td>{{ $item->no_lot_reagen ?? '-' }}</td>
+                <td class="text-nowrap">{{ formatDate($item->tanggal_expired_reagen) }}</td>
                 <td>{{ $item->petugas->nama ?? '-' }}</td>
-                <td>{{ $item->pemeriksaSerologi->nama ?? '-' }}</td>
-                <td>{{ $item->diputarOleh->nama ?? '-' }}</td>
-                <td>{{ $item->diperiksaOleh->nama ?? '-' }}</td>
-                <td>{{ $item->disahkanOleh->nama ?? '-' }}</td>
                 <td class="text-center">{{ $total }}</td>
                 <td class="text-center">{{ $done }}</td>
                 <td class="text-center">
                     @php($badge = $item->status === 'selesai' ? 'success' : ($item->status === 'proses' ? 'warning' : 'secondary'))
-                    <span class="badge badge-light-{{ $badge }}">{{ strtoupper($item->status) }}</span>
+                    <span class="badge badge-{{ $badge }}">{{ strtoupper($item->status) }}</span>
                 </td>
                 <td class="text-end text-nowrap">
                     <button class="btn btn-sm btn-primary ps-4 pe-2 py-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">

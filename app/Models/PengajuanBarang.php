@@ -10,13 +10,16 @@ class PengajuanBarang extends Model
     use SoftDeletes;
     protected $table = 'pengajuan_barang';
     protected $fillable = [
-        'kode', 'tgl_pengajuan', 'jenis_pengajuan', 'status', 'user_input', 'user_proses',
+        'kode', 'tgl_pengajuan', 'jenis_pengajuan', 'status','bagian_id', 'user_input', 'user_proses',
         'cabang_id', 'petugas_id', 'barang_id', 'nama_barang', 'satuan', 'jml_minta',
     ];
     public function cabang() { return $this->belongsTo(Cabang::class); }
     public function petugas() { return $this->belongsTo(Petugas::class); }
     public function barang() { return $this->belongsTo(Barang::class); }
+    public function bagian() { return $this->belongsTo(BagianPetugas::class, 'bagian_id'); }
     public function dokumentasiBarang() { return $this->hasOne(DokumentasiBarang::class); }
     public function pemakaianBarang() { return $this->hasMany(PemakaianBarang::class); }
     public function pengeluaranBarang() { return $this->hasMany(PengeluaranBarang::class); }
+    public function permintaanLogistik() { return $this->hasOne(PermintaanBarangLogistik::class); }
+
 }

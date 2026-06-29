@@ -32,7 +32,6 @@
                             Opsi <i class="ki-duotone ki-down fs-5 ms-1"></i>
                         </button>
                         <div class="menu menu-sub menu-sub-dropdown dropdown-menu menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-auto py-4" data-kt-menu="true">
-                            <div class="menu-item px-3"><a onclick="confirm_permintaan({{ $item->id }})" href="javascript:void(0)" class="menu-link px-3">Confirm Permintaan</a></div>
                             @if($item->flag === 0)
                                 <div class="menu-item px-3"><a onclick="info({{ $item->id }})" href="javascript:void(0)" class="menu-link px-3">Ubah</a></div>
                                 <div class="menu-item px-3"><a onclick="confirm_delete({{ $item->id }})" href="javascript:void(0)" class="menu-link px-3">Hapus</a></div>

@@ -11,8 +11,7 @@ use App\Models\PengembalianDarahExternalDetail;
 
 class PengembalianDarahExternalService
 {
-    // ─── Generate Nomor ───────────────────────────────────────────────────────
-
+    
     public function generateNomor(): string
     {
         $prefix = 'PKE';

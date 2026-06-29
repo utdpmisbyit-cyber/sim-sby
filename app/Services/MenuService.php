@@ -182,8 +182,13 @@ class MenuService
      protected static array $aftap = [
         'dashboard' => ['route' => 'aftap', 'caption' => 'Dashboard'],
         'aftap' => ['route' => 'aftap.aftap.index', 'caption' => 'Aftap'],
-        'permintaan_kantong' => ['route' => 'aftap.permintaan_kantong.index', 'caption' => 'Permintaan Kantong'],
+        'Permintaan' => ['route' => '#.index', 'caption' => 'Permintaan', 'sub_menus' => [
+                'permintaan_kantong' => ['route' => 'aftap.permintaan_kantong.index', 'caption' => 'Permintaan Kantong'],
+                // 'permintaan_cetak_ulang' => ['route' => 'gudang.permintaan_cetak_ulang.index', 'caption' => 'Permintaan Cetak Ulang'],
+
+        ]],
         'penerimaan_kantong' => ['route' => 'aftap.penerimaan.index', 'caption' => 'Penerimaan Kantong Darah'],
+        'persediaan_kantong' => ['route' => 'aftap.persediaan_kantong.index', 'caption' => 'Persediaan Kantong'],
         'pengeluaran_kantong_mu' => ['route' => 'aftap.pengeluaran_mobile_unit.index', 'caption' => 'Pengeluaran Kantong Mu'],
         'pengembalian_kantong' => ['route' => 'aftap.pengembalian_kantong.index', 'caption' => 'Pengembalian Kantong'],
         'pengiriman_sample' => ['route' => 'aftap.pengiriman_sample.index', 'caption' => 'Pengiriman Sample Sero & Produksi'],
@@ -196,16 +201,19 @@ class MenuService
         'pendaftaran' => ['route' => 'unit.pendaftaran.index', 'caption' => 'Pendaftaran'],
         'pemeriksaan_kesehatan' => ['route' => 'unit.pemeriksaan_kesehatan.index', 'caption' => 'Pemeriksaan Kesehatan'],
         'pemeriksaan_hb' => ['route' => 'unit.pemeriksaan_hb.index', 'caption' => 'Hermatologi / Pra Lab'],
-        
+        'permintaan_fpup' => ['route' => 'crossmatch.permintaan_fpup.index', 'caption' => 'Permintaan Fpup Crossmatch'],
+        'permintaan_fpup_referal' => ['route' => 'referal.permintaan_fpup_referal.index', 'caption' => 'Permintaan Fpup Referal'],
+
         // 'pengeluaran_kantong_mu' => ['route' => 'unit.pengeluaran_kantong_mu.index', 'caption' => 'Pengeluaran Kantong MU'],
         
     ];
     protected static array $mobil_unit = [
         'mobil_unit' => ['route' => 'mobil_unit', 'caption' => 'Dashboard'],
         'pendaftaran' => ['route' => 'mobil_unit.pendaftaran_mobil.index', 'caption' => 'Pendaftaran Mu'],
-        'pemeriksaan_kesehatan' => ['route' => 'mobil_unit.pemeriksaan_mobil.index', 'caption' => 'Pemeriksaan Kesehatan'],
-        'pemeriksaan_hb' => ['route' => 'mobil_unit.pemeriksaan_mobil_hb.index', 'caption' => 'Hermatologi / Pra Lab'],
-        'aftap' => ['route' => 'mobil_unit.aftap_mobil.index', 'caption' => 'Aftap'],
+        'pemeriksaan' => ['route' => '#', 'caption' => 'Pemeriksaan', 'sub_menus' => [
+            'pemeriksaan_kesehatan' => ['route' => 'mobil_unit.pemeriksaan_kesehatan.index', 'caption' => 'Pemeriksaan Kesehatan'],
+            'pemeriksaan_hb' => ['route' => 'mobil_unit.pemeriksaan_hb.index', 'caption' => 'Hermatologi / Pra Lab'],
+        ]],'aftap' => ['route' => 'mobil_unit.aftap_mobil.index', 'caption' => 'Aftap'],
         'permintaan_mobil_unit' => ['route' => 'mobil_unit.permintaan_mobil_unit.index', 'caption' => 'Permintaan Kantong Mu'],
 
 
@@ -217,9 +225,8 @@ class MenuService
         'persediaan_kantong' => ['route' => 'kantong_darah.persediaan_kantong.index', 'caption' => 'Persediaan Kantong'],
         'rencana_produksi' => ['route' => 'kantong_darah.rencana_produksi.index', 'caption' => 'Rencana Produksi'],
         'produksi_rilis' => ['route' => 'kantong_darah.produksi_rilis.index', 'caption' => 'Produksi Rilis'],
+        'verifikasi_produksi' => ['route' => 'kantong_darah.verifikasi_produksi.index', 'caption' => 'Verifikasi Produksi'],
         
-       
-       
     
     ];
 
@@ -228,6 +235,8 @@ class MenuService
         'serologi' => ['route' => 'serologi', 'caption' => 'Dashboard'],
         'transaksi_serologi' => ['route' => 'serologi.transaksi_serologi.index', 'caption' => 'Transaksi Serologi'],
         'permintaan_supplier' => ['route' => 'serologi.permintaan_supplier.index', 'caption' => 'Permintaan Barang'],
+        'kirim_litbang' => ['route' => 'serologi.kirim_litbang.index', 'caption' => 'Kirim Litbang'],
+        'konfirmasi_litbang' => ['route' => 'serologi.konfirmasi_litbang.index', 'caption' => 'Konfirmasi Litbang'],
         'pengiriman_darah_prolis' => ['route' => 'produksi.pengiriman_darah_prolis.index', 'caption' => 'Pengiriman Darah Prolis'],
 
     
@@ -242,9 +251,13 @@ class MenuService
     protected static array $gudang = [
         'gudang' => ['route' => 'gudang', 'caption' => 'Dashboard'],
         'pendataan_kantong' => ['route' => 'gudang.pendataan_kantong.index', 'caption' => 'Pendataan Kantong'],
+        'konfirmasi_permintaan' => ['route' => 'gudang.konfirmasi_permintaan.index', 'caption' => 'Konfirmasi Permintaan'],
         'stok_kantong' => ['route' => 'gudang.stok_kantong.index', 'caption' => 'Stok Kantong'],
         'pengeluaran_kantong' => ['route' => 'gudang.pengeluaran_kantong.index', 'caption' => 'Pengeluaran Kantong'],
         'cetak_barcode'  => ['route' => 'gudang.cetak_barcode.index', 'caption' => 'Cetak Ulang Barcode'],
+        'riwayat_barcode' => ['route' => 'gudang.riwayat_barcode.index', 'caption' => 'Riwayat Cetak'],
+        'pengajuan_barang' => ['route' => 'gudang.pengajuan_barang.index', 'caption' => 'Permintaan Barang Logistik']
+
     ];
 
     protected static array $inventory = [
@@ -254,14 +267,13 @@ class MenuService
         'supplier' => ['route' => 'inventory.supplier.index', 'caption' => 'Supplier'],
         'stok' => ['route' => 'inventory.stok.index', 'caption' => 'Stok'],
         'pembelian' => ['route' => '#.index', 'caption' => 'Pembelian', 'sub_menus' => [
-            'pengajuan_supplier' => ['route' => 'inventory.pengajuan_supplier.index', 'caption' => 'Pengajuan Supplier'],
             'permintaan_supplier' => ['route' => 'inventory.permintaan_supplier.index', 'caption' => 'Permintaan Supplier'],
             'purchase_order' => ['route' => 'inventory.purchase_order.index', 'caption' => 'Purchase Order'],
-            'qc_barang_masuk' => ['route' => 'inventory.qc_barang_masuk.index', 'caption' => 'QC Barang Masuk'],
-            'return_supplier' => ['route' => 'inventory.return_supplier.index', 'caption' => 'Return Supplier'],
+            'QC_barang_masuk' => ['route' => 'inventory.QC_barang_masuk.index', 'caption' => 'QC Barang Masuk'],
+            'return_supplier' => ['route' => 'inventory.return_supplier.index', 'caption' => 'Retur Supplier'],
         ]],
         'pengeluaran' => ['route' => '#.index', 'caption' => 'Pengeluaran', 'sub_menus' => [
-            'pengajuan_barang' => ['route' => 'inventory.pengajuan_barang.index', 'caption' => 'Permintaan Barang'],
+            'permintaan_barang_logistik' => ['route' => 'inventory.permintaan_barang_logistik.index', 'caption' => 'Verifikasi Permintaan Barang'],
             'pengeluaran_barang' => ['route' => 'inventory.pengeluaran_barang.index', 'caption' => 'Pengeluaran Barang'],
             'pemakaian_barang' => ['route' => 'inventory.pemakaian_barang.index', 'caption' => 'Pemakaian Barang'],
             'pinjam_barang' => ['route' => 'inventory.pinjam_barang.index', 'caption' => 'Pinjam Barang'],
@@ -279,6 +291,12 @@ class MenuService
             'kas_masuk' => ['route' => 'finance.kas_masuk.index', 'caption' => 'Kas Masuk'],
             'kas_keluar' => ['route' => 'finance.kas_keluar.index', 'caption' => 'Kas Keluar'],
         ]],
+        'kasir' => ['route' => '#.index', 'caption' => 'Kasir', 'sub_menus' => [
+            'pembayaran_dropping_external' => ['route' => 'finance.pembayaran_dropping_external.index', 'caption' => 'Pembayaran Dropping External'],
+            'pelayanan_darah' => ['route' => 'finance.pelayanan_darah.index', 'caption' => 'Pelayanan Darah'],
+            'retur_biaya_crosstest' => ['route' => 'finance.pengembalian_biaya_crosstest.index', 'caption' => 'Pengembalian Biaya Crosstest'],
+
+        ]],
         'laporan' => ['route' => '#.index', 'caption' => 'Laporan', 'sub_menus' => [
             'trial_balance' => ['route' => 'finance.trial_balance.index', 'caption' => 'Trial Balance'],
             'general_leadge' => ['route' => 'finance.general_leadge.index', 'caption' => 'General Ledger'],
@@ -292,9 +310,14 @@ class MenuService
         'pengiriman_darah_external' => ['route' => 'penyimpanan.pengiriman_darah_external.index', 'caption' => 'Pengiriman Darah External'],
         'pengiriman_bank_darah_internal' => ['route' => 'penyimpanan.pengiriman_bank_darah_internal.index', 'caption' => 'Pengiriman Darah Internal'],
         'penyisihan_darah_rusak' => ['route' => 'penyimpanan.penyisihan_darah_rusak.index', 'caption' => 'Penyisihan darah Rusak'],
-        'pengembalian_darah_external' => ['route' => 'penyimpanan.pengembalian_darah_external.index', 'caption' => 'Pengembalian External'],
         'opname_darah' => ['route' => 'penyimpanan.opname_darah.index', 'caption' => 'Opname Darah'],
-         
+        'permintaan_penyimpanan' => ['route' => 'penyimpanan.permintaan_penyimpanan.index', 'caption' => 'Permintaan Penyimpanan/Internal'],
+        
+        'pengembalian' => ['route' => '#.index', 'caption' => 'pengembalian', 'sub_menus' => [
+            'pengembalian_darah_external' => ['route' => 'penyimpanan.pengembalian_darah_external.index', 'caption' => 'Pengembalian External'],
+            'pengembalian_bank_darah_internal' => ['route' => 'penyimpanan.pengembalian_bank_darah_internal.index', 'caption' => 'Pengembalian Internal'],
+              
+        ]],
         'informasi & fraksionasi' => ['route' => '#.index', 'caption' => 'informasi & fraksionasi', 'sub_menus' => [
             'stok_darah' => ['route' => 'penyimpanan.stok_darah.index', 'caption' => 'Informasi Stok Darah'],
             'fraksionasi_darah' => ['route' => 'penyimpanan.fraksionasi_darah.index', 'caption' => 'Fraksionasi Darah'],

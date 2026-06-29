@@ -1,7 +1,4 @@
-{{-- ============================================================ --}}
-{{-- BANNER + DAFTAR PENGAJUAN PENDING --}}
-{{-- Kirim $pengajuan_pending dari controller (PengajuanBarang status=0) --}}
-{{-- ============================================================ --}}
+
 @if(isset($pengajuan_pending) && $pengajuan_pending->count() > 0)
 
 <div class="alert alert-warning d-flex align-items-center p-4 mb-5 border border-warning rounded">

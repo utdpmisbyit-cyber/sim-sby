@@ -77,13 +77,31 @@ class PemeriksaanHbController extends Controller
 
     public function update(Request $request, $id)
     {
+        $petugas = \App\Models\Petugas::where('user_id', auth()->id())->first();
+
         if ($request->has('dokter_id')) {
             return $this->pemeriksaanHbService->update([
                 'dokter_id' => $request->input('dokter_id')], $id);
         }
-        $petugas   = \App\Models\Petugas::where('user_id', auth()->id())->first();
-        
-        $pemeriksaan_hb = $this->pemeriksaanHbService->update($request->all(), $id);
+
+        $data = $request->all();
+
+        if ($petugas) {
+            // Selalu isi dokter_id dengan petugas yang sedang login saat
+            // menyimpan hasil pemeriksaan, supaya kolom ini tidak kosong.
+            $data['dokter_id'] = $petugas->id;
+        } else {
+            $existing = $this->pemeriksaanHbService->find($id);
+            if (empty($existing?->dokter_id)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Akun Anda belum terhubung ke data Petugas, sehingga Dokter tidak dapat diisi. Hubungi admin untuk menautkan akun Anda.'
+                ], 422);
+            }
+            // Sudah ada dokter_id sebelumnya, jangan ditimpa jadi kosong.
+        }
+
+        $pemeriksaan_hb = $this->pemeriksaanHbService->update($data, $id);
         $status = $request->input('status') ?? '';
         if ($status === 'Rejected') {
             $this->logDonorService->update(['step' => 'Rejected'], $pemeriksaan_hb->log_donor_id);
@@ -142,7 +160,6 @@ class PemeriksaanHbController extends Controller
                 return response()->json(['error' => 'Data tidak ditemukan'], 404);
             }
 
-            // ✅ AUTO CREATE
             if (!$log_donor->pemeriksaanHb) {
                 $log_donor->pemeriksaanHb()->create([
                     'kode'         => $this->pemeriksaanHbService->generateKode(),
@@ -179,14 +196,14 @@ class PemeriksaanHbController extends Controller
     $no_hp = preg_replace('/^0/', '62', $log->donor->no_telp);
 
     $noAntrian = (int) substr($log->kode, -3);
-    $kodeAftap = 'AF' . str_pad($noAntrian, 4, '0', STR_PAD_LEFT); // ✅ Fix: pakai $noAntrian
+    $kodeAftap = 'AF' . str_pad($noAntrian, 4, '0', STR_PAD_LEFT); 
 
     $pesan = "Nomor antrian *{$kodeAftap}*\n" .
              "Nama: {$log->donor->nama}\n" .
              "Silakan menuju meja pemeriksaan HB";
 
     $response = \Illuminate\Support\Facades\Http::withHeaders([
-        'Authorization' => 'TOKEN_KAMU' // ✅ Fix: header bukan body
+        'Authorization' => 'TOKEN_KAMU'
     ])->post('https://api.fonnte.com/send', [
         'target'  => $no_hp,
         'message' => $pesan,

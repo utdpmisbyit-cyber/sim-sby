@@ -69,7 +69,7 @@
                                 ? asset('storage/'.$log_donor->donor->foto) 
                                 : asset('assets/media/avatars/blank.jpg') }}'
                         )">
-                    <i class="ki-duotone ki-card fs-6">
+                    <i class="ki-duotone ki-credit-cart fs-6">
                         <span class="path1"></span>
                         <span class="path2"></span>
                     </i>
@@ -101,7 +101,7 @@
                         <button class="btn btn-icon btn-light-danger btn-sm h-25px w-25px"
                                 title="Delete" onclick="confirm_delete({{ $log_donor->id }})">
                             <i class="ki-duotone ki-cross fs-6">
-                                <span class="path1"></span><span class="path2"></span><span class="path3"></span>
+                                <span class="path1"></span><span class="path2"></span>
                             </i>
                         </button>
                     @endif

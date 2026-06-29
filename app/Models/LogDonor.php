@@ -12,7 +12,7 @@ class LogDonor extends Model
     protected $table = 'log_donor';
 
     protected $fillable = [
-        'kode', 'cabang_id', 'donor_id', 'petugas_registrasi_id', 'step','status','nomor_ruangan',
+        'kode', 'cabang_id', 'donor_id','jenis_donor', 'petugas_registrasi_id', 'step','status','nomor_ruangan',
     ];
 
     public function cabang()

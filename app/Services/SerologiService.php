@@ -13,7 +13,7 @@ class SerologiService extends IoService
         $this->model = new Serologi();
         $this->with = ['petugas', 'pemeriksaSerologi', 'diputarOleh', 'diperiksaOleh', 'disahkanOleh', 'jenisPeriksaSerologi', 'metodeSerologi', 'reagenSerologi', 'details'];
         $this->sort_by = ['tanggal' => 'desc', 'created_at' => 'desc'];
-        $this->filters = ['nomor', 'tanggal', 'jenis_periksa_serologi_id', 'metode_serologi_id', 'reagen_serologi_id', 'group', 'petugas_id', 'pemeriksa_serologi_id', 'diputar_oleh_id', 'diperiksa_oleh_id', 'disahkan_oleh_id', 'status'];
+        $this->filters = ['nomor', 'tanggal', 'jenis_periksa_serologi_id', 'metode_serologi_id', 'reagen_serologi_id', 'no_lot_reagen', 'tanggal_expired_reagen', 'group', 'petugas_id', 'pemeriksa_serologi_id', 'diputar_oleh_id', 'diperiksa_oleh_id', 'disahkan_oleh_id', 'status'];
     }
 
     public function dynamic_search($model, $params = [])
@@ -23,6 +23,7 @@ class SerologiService extends IoService
             $model = $model->where(function ($q) use ($keyword) {
                 $q->where('nomor', 'like', '%' . $keyword . '%')
                     ->orWhere('group', 'like', '%' . $keyword . '%')
+                    ->orWhere('no_lot_reagen', 'like', '%' . $keyword . '%')
                     ->orWhereHas('jenisPeriksaSerologi', fn($j) => $j->where('nama', 'like', '%' . $keyword . '%'))
                     ->orWhereHas('metodeSerologi', fn($m) => $m->where('nama', 'like', '%' . $keyword . '%'))
                     ->orWhereHas('reagenSerologi', fn($r) => $r->where('nama', 'like', '%' . $keyword . '%'))
@@ -41,6 +42,7 @@ class SerologiService extends IoService
     public function filter_params($params, $id = '')
     {
         $params['status'] = $params['status'] ?? 'pending';
+        $params = $this->cleanDate($params, ['tanggal', 'tanggal_expired_reagen']);
 
         return $params;
     }
@@ -65,6 +67,26 @@ class SerologiService extends IoService
         });
     }
 
+    public function generateNoLot(): string
+    {
+        return DB::transaction(function () {
+            $prefix = date('Ymd');
+            $last = $this->model
+                ->newQuery()
+                ->lockForUpdate()
+                ->where('no_lot_reagen', 'like', $prefix . '%')
+                ->orderByDesc('no_lot_reagen')
+                ->first();
+
+            if (!$last) {
+                return $prefix . '001';
+            }
+
+            $lastNo = (int) substr($last->no_lot_reagen, -3);
+            return $prefix . str_pad($lastNo + 1, 3, '0', STR_PAD_LEFT);
+        });
+    }
+
     public function generateGroupCode(): string
     {
         return 'GRP' . date('ymdHis');
@@ -77,6 +99,8 @@ class SerologiService extends IoService
             $jenisPeriksaList = $params['jenis_periksa_serologi_id_list'] ?? [];
             $metodeList = $params['metode_serologi_id_list'] ?? [];
             $reagenList = $params['reagen_serologi_id_list'] ?? [];
+            $noLotList = $params['no_lot_reagen_list'] ?? [];
+            $tanggalExpiredList = $params['tanggal_expired_reagen_list'] ?? [];
             $groupCode = $params['group'] ?? $this->generateGroupCode();
 
             $created = [];
@@ -85,6 +109,12 @@ class SerologiService extends IoService
                 $jenisPeriksaId = (int) ($jenisPeriksaList[$i] ?? 0);
                 $metodeId = (int) ($metodeList[$i] ?? 0);
                 $reagenId = (int) ($reagenList[$i] ?? 0);
+                $noLot = $noLotList[$i] ?? null;
+                if (empty($noLot)) {
+                    $noLot = $this->generateNoLot();
+                }
+                $tanggalExpired = !empty($tanggalExpiredList[$i]) ? unformatDate($tanggalExpiredList[$i]) : null;
+
                 if ($jenisPeriksaId <= 0 || $metodeId <= 0 || $reagenId <= 0) {
                     continue;
                 }
@@ -94,10 +124,12 @@ class SerologiService extends IoService
 
                 $created[] = $this->model->create([
                     'nomor' => $nomor,
-                    'tanggal' => $params['tanggal'] ?? date('Y-m-d'),
+                    'tanggal' => !empty($params['tanggal']) ? unformatDate($params['tanggal']) : date('Y-m-d'),
                     'jenis_periksa_serologi_id' => $jenisPeriksaId,
                     'metode_serologi_id' => $metodeId,
                     'reagen_serologi_id' => $reagenId,
+                    'no_lot_reagen' => $noLot,
+                    'tanggal_expired_reagen' => $tanggalExpired,
                     'group' => $groupCode,
                     'petugas_id' => $params['petugas_id'] ?? null,
                     'pemeriksa_serologi_id' => $params['pemeriksa_serologi_id'] ?? null,
@@ -124,10 +156,12 @@ class SerologiService extends IoService
 
             $new = $this->model->create([
                 'nomor' => $params['nomor'] ?? $this->generateNomor(),
-                'tanggal' => $params['tanggal'] ?? date('Y-m-d'),
+                'tanggal' => !empty($params['tanggal']) ? unformatDate($params['tanggal']) : ($source->tanggal ? $source->tanggal->format('Y-m-d') : date('Y-m-d')),
                 'jenis_periksa_serologi_id' => $params['jenis_periksa_serologi_id'] ?? $source->jenis_periksa_serologi_id,
                 'metode_serologi_id' => $params['metode_serologi_id'] ?? $source->metode_serologi_id,
                 'reagen_serologi_id' => $params['reagen_serologi_id'] ?? $source->reagen_serologi_id,
+                'no_lot_reagen' => $params['no_lot_reagen'] ?? $source->no_lot_reagen,
+                'tanggal_expired_reagen' => !empty($params['tanggal_expired_reagen']) ? unformatDate($params['tanggal_expired_reagen']) : ($source->tanggal_expired_reagen ? $source->tanggal_expired_reagen->format('Y-m-d') : null),
                 'group' => $params['group'] ?? $this->generateGroupCode(),
                 'petugas_id' => $params['petugas_id'] ?? $source->petugas_id,
                 'pemeriksa_serologi_id' => $params['pemeriksa_serologi_id'] ?? $source->pemeriksa_serologi_id,

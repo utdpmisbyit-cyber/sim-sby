@@ -55,4 +55,8 @@ class PendataanKantong extends Model
     {
         return $this->belongsTo(KantongDarahHasilProduksi::class, 'barcode', 'kode');
     }
+    public function scopeSudahDigenerate($query)
+    {
+        return $query->whereNotNull('barcode');
+    }
 }

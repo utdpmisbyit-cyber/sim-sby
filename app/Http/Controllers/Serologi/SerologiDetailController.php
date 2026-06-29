@@ -56,7 +56,7 @@ class SerologiDetailController extends Controller
 
         $aftap = $this->service->getAftapByNoKantong((string) $request->input('no_kantong', ''));
         if (!$aftap) {
-            return response()->json(['error' => 'No kantong tidak ditemukan pada data aftap'], 422);
+            return response()->json(['error' => 'No kantong tidak ditemukan pada data aftap']);
         }
         $request->merge(['aftap_id' => $aftap->id]);
 
@@ -69,7 +69,7 @@ class SerologiDetailController extends Controller
     {
         $aftap = $this->service->getAftapByNoKantong((string) $request->query('no_kantong', ''));
         if (!$aftap) {
-            return response()->json(['error' => 'No kantong tidak ditemukan pada data aftap'], 404);
+            return response()->json(['error' => 'No kantong tidak ditemukan pada data aftap']);
         }
 
         $donor = $aftap->donor;

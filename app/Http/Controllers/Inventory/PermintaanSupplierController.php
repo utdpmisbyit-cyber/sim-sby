@@ -21,10 +21,7 @@ class PermintaanSupplierController extends IoResourceController
     public function search(Request $request)
     {
         $params = $request->all();
-        $model = $this->service->query(); 
-        $model = $this->service->dynamic_search($model, $params);
-        $permintaan_supplier = $model->paginate(10);
-
+        $permintaan_supplier = $this->service->search($params);
         return view($this->viewPrefix . '._table', compact('permintaan_supplier'));
     }
 

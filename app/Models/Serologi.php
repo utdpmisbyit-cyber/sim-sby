@@ -14,6 +14,8 @@ class Serologi extends Model
         'jenis_periksa_serologi_id',
         'metode_serologi_id',
         'reagen_serologi_id',
+        'no_lot_reagen',
+        'tanggal_expired_reagen',
         'group',
         'petugas_id',
         'pemeriksa_serologi_id',
@@ -21,10 +23,14 @@ class Serologi extends Model
         'diperiksa_oleh_id',
         'disahkan_oleh_id',
         'status',
+        'time_in',
+        'time_process',
+        'time_complete'
     ];
 
     protected $casts = [
         'tanggal' => 'date',
+        'tanggal_expired_reagen' => 'date',
     ];
 
     public function petugas()

@@ -81,21 +81,6 @@
             });
         }
 
-        let confirm_permintaan = (id) => {
-            Swal.fire({
-                title: 'Konfirmasi Permintaan ?',
-                icon: 'question',
-                showDenyButton: true,
-                confirmButtonText: 'Confirm',
-                denyButtonText: 'Cancel',
-            }).then((result) => {
-                if (result.isConfirmed) $.post(base_url + '/' + id + '/confirm', {_method: 'put', _token, flag: 1}, (data) => {
-                    if (data.error) Swal.fire({icon: 'error', title: data.error}).then(() => init());
-                    else Swal.fire('Berhasil Dikonfirmasi').then(() => init());
-                }).fail((xhr) => $table.html(xhr.responseText));
-            });
-        }
-
         $form_search.submit((e) => { e.preventDefault(); search_data(); });
         init_form_element();
         init();
