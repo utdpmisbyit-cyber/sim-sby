@@ -13,6 +13,7 @@ return new class extends Migration
             $table->string('kode')->unique();
             $table->foreignId('cabang_id')->constrained('cabang')->cascadeOnUpdate()->restrictOnDelete();
             $table->foreignId('donor_id')->constrained('donor')->cascadeOnUpdate()->restrictOnDelete();
+            $table->string('jenis_donor')->nullable();
             $table->foreignId('petugas_registrasi_id')->constrained('petugas')->cascadeOnUpdate()->restrictOnDelete();
             $table->string('step')->nullable();
             $table->string('status')->nullable();

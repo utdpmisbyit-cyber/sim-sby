@@ -7,7 +7,7 @@ class PemeriksaanHB extends Model
 {
     const STATUS = ['Pending', 'Ongoing', 'Approved', 'Rejected', 'Cancelled'];
     const GOLONGAN_DARAH = ['A', 'B', 'AB', 'O'];
-    const RHESUS = ['+', '-'];
+    const RHESUS = ['Positif', 'Negatif'];
     const LENGAN = ['Kiri/Kanan', 'Kiri', 'Kanan'];
     const METODE = ['HB Meter', 'HB Cupri'];
 

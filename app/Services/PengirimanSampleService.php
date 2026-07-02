@@ -36,7 +36,7 @@ class PengirimanSampleService
         return $prefix . str_pad($urut, 4, '0', STR_PAD_LEFT);
     }
 
-  
+
         public function getKantongByScan(string $no_kantong): object
     {
         $data = DB::table('aftap as a')
@@ -130,10 +130,13 @@ class PengirimanSampleService
                     'cabang_id'            => $item['cabang_id']       ?? null,
                     'perkiraan'            => $item['perkiraan']       ?? null,
                     'jenis_donor'          => $item['jenis_donor']     ?? null,
+                    // suhu coolbox per baris (fallback ke suhu header jika item tidak bawa nilai sendiri)
                     'suhu'                 => $item['suhu']            ?? $data['suhu'] ?? null,
+                    // ── BARU: suhu spesifik sample/kantong ini (diisi manual per baris di form) ──
+                    'suhu_sample'          => $item['suhu_sample']     ?? null,
                     'id_logger'            => $item['id_logger']       ?? $data['id_logger'] ?? null,
                     'id_coolbox'           => $item['id_coolbox']      ?? $data['id_coolbox'] ?? null,
-                    'asal_darah'           => $item['asal_darah']      ?? null,  
+                    'asal_darah'           => $item['asal_darah']      ?? null,
                     'status'               => $item['status']           ?? 'pending',
                 ]);
             }

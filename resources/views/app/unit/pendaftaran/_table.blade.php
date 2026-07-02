@@ -14,6 +14,7 @@
                 <th class="w-30px ps-4 rounded-start">No.</th>
                 <th class="min-w-100px">Kode Reg.</th>
                 <th class="min-w-100px">Kode Donor</th>
+                <th class="min-w-100px">Lokasi Donor</th>
                 <th class="min-w-150px">Nama Pasien</th>
                 <th class="min-w-100px">Tanggal, Waktu Daftar</th>
                 <th class="min-w-80px">Petugas</th>
@@ -31,6 +32,11 @@
                     </td>
                     <td>
                         <span class="text-dark fs-7">{{ $log_donor->donor->kode }}</span>
+                    </td>
+                     <td> 
+                        <span class="badge {{ $log_donor->jenis_donor === 'udd pmi sby' ? 'badge-light-danger' : 'badge-light-success' }} fs-8 text-capitalize">
+                            {{ $log_donor->jenis_donor }}
+                        </span>
                     </td>
                     <td>
                         <div class="d-flex align-items-center gap-2">

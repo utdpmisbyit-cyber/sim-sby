@@ -201,9 +201,7 @@ class MenuService
         'pendaftaran' => ['route' => 'unit.pendaftaran.index', 'caption' => 'Pendaftaran'],
         'pemeriksaan_kesehatan' => ['route' => 'unit.pemeriksaan_kesehatan.index', 'caption' => 'Pemeriksaan Kesehatan'],
         'pemeriksaan_hb' => ['route' => 'unit.pemeriksaan_hb.index', 'caption' => 'Hermatologi / Pra Lab'],
-        'permintaan_fpup' => ['route' => 'crossmatch.permintaan_fpup.index', 'caption' => 'Permintaan Fpup Crossmatch'],
-        'permintaan_fpup_referal' => ['route' => 'referal.permintaan_fpup_referal.index', 'caption' => 'Permintaan Fpup Referal'],
-
+      
         // 'pengeluaran_kantong_mu' => ['route' => 'unit.pengeluaran_kantong_mu.index', 'caption' => 'Pengeluaran Kantong MU'],
         
     ];
@@ -330,7 +328,9 @@ class MenuService
         'pelayanan crosstest' => ['route' => 'crossmatch.pelayanan_crosstest.index', 'caption' => 'Pelayanan Crosstest'],
         'pemberian darah' => ['route' => 'crossmatch.pemberian_darah.index', 'caption' => 'Pemberian Darah'],
         'pengembalian darah' => ['route' => 'crossmatch.pengembalian_darah.index', 'caption' => 'Pengembalian Darah'],
-        'riwayat pasien'  =>  ['route' => 'crossmatch.riwayat_pasien_crossmatch.index','caption' => 'Riwayat pasien Crossmatch']
+        'riwayat pasien'  =>  ['route' => 'crossmatch.riwayat_pasien_crossmatch.index','caption' => 'Riwayat pasien Crossmatch'],
+        'permintaan_fpup' => ['route' => 'crossmatch.permintaan_fpup.index', 'caption' => 'Permintaan Fpup Crossmatch'],
+        
      ];
      protected static array $referal = [
         'referal' => ['route' => 'referal', 'caption' => 'Dashboard'],

@@ -94,6 +94,51 @@
     }
     .btn-scan:hover { background: #0f766e; transform: translateY(-1px); }
 
+    /* ── Combobox No Permintaan (searchable) ─────────────────── */
+    .combo-wrap { position: relative; }
+    .combo-dropdown {
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0; right: 0;
+        z-index: 30;
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius-sm);
+        box-shadow: 0 8px 24px rgba(0,0,0,.12);
+        max-height: 260px;
+        overflow-y: auto;
+        display: none;
+    }
+    .combo-dropdown.open { display: block; }
+    .combo-item {
+        padding: 9px 12px;
+        font-size: .85rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        border-bottom: 1px solid var(--surface-3);
+        transition: background .12s;
+    }
+    .combo-item:last-child { border-bottom: none; }
+    .combo-item:hover, .combo-item.active-hover { background: var(--teal-light); }
+    .combo-item .combo-nomor { font-weight: 700; color: var(--text); font-family: monospace; }
+    .combo-empty {
+        padding: 14px 12px;
+        font-size: .82rem;
+        color: var(--text-light);
+        text-align: center;
+    }
+    .combo-clear {
+        position: absolute;
+        right: 10px; top: 32px;
+        background: none; border: none; color: var(--text-light);
+        cursor: pointer; font-size: .8rem; padding: 4px;
+        display: none;
+    }
+    .combo-clear.visible { display: block; }
+
     .select-section {
         background: linear-gradient(135deg, #f0fffe 0%, #e6faf8 100%);
         border-bottom: 1px solid #b2dfdb;
@@ -125,6 +170,7 @@
     .badge-status {
         display: inline-block; font-size: .7rem; font-weight: 700;
         padding: 2px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: .05em;
+        white-space: nowrap;
     }
     .badge-pending  { background: #fef3c7; color: #92400e; }
     .badge-proses   { background: #dbeafe; color: #1e40af; }
@@ -276,16 +322,38 @@
                     <label class="form-label">Petugas</label>
                     <input type="text" class="form-control" readonly value="{{ auth()->user()->name ?? 'admin' }}">
                 </div>
-                <div class="form-group">
+
+                {{-- ── No Permintaan — searchable combobox ── --}}
+                <div class="form-group combo-wrap">
                     <label class="form-label">No Permintaan</label>
-                    <select id="noMinta" class="form-select" onchange="loadPermintaan()">
-                        <option value="">— Pilih No Permintaan —</option>
-                        @foreach($permintaanList ?? [] as $pm)
-                            <option value="{{ $pm->id }}">
-                                {{ $pm->nomor }} — {{ $pm->status }}
-                            </option>
-                        @endforeach
-                    </select>
+                    <input type="text" id="noMintaSearch" class="form-control" autocomplete="off"
+                        placeholder="Ketik untuk cari no permintaan…"
+                        oninput="filterNoMinta()"
+                        onfocus="openNoMintaDropdown()">
+                    <input type="hidden" id="noMinta" value="">
+                    <button type="button" class="combo-clear" id="noMintaClear" onclick="clearNoMinta()" title="Hapus pilihan">
+                        <i class="fas fa-times-circle"></i>
+                    </button>
+
+                    <div class="combo-dropdown" id="noMintaDropdown">
+                        @forelse($permintaanList ?? [] as $pm)
+                            @php
+                                $st = strtoupper($pm->status ?? 'PENDING');
+                                $badgeClass = $st === 'SELESAI' ? 'badge-selesai'
+                                            : ($st === 'PROSES' ? 'badge-proses' : 'badge-pending');
+                            @endphp
+                            <div class="combo-item"
+                                 data-id="{{ $pm->id }}"
+                                 data-nomor="{{ $pm->nomor }}"
+                                 data-status="{{ $st }}"
+                                 onclick="selectNoMinta('{{ $pm->id }}')">
+                                <span class="combo-nomor">{{ $pm->nomor }}</span>
+                               
+                            </div>
+                        @empty
+                            <div class="combo-empty">Tidak ada data permintaan.</div>
+                        @endforelse
+                    </div>
                 </div>
             </div>
 
@@ -445,7 +513,7 @@
    ═══════════════════════════════════════════════════════════ */
 let scanHistory     = [];    // no_kantong yang di-scan sesi ini
 let selectedRowData = null;  // data baris detail yang aktif
-let editId          = null;  // id record yang sedang diedit
+let editId           = null;  // id record yang sedang diedit
 
 /* ═══════════════════════════════════════════════════════════
    INIT
@@ -454,6 +522,14 @@ document.addEventListener('DOMContentLoaded', () => {
     generateNoTransaksi();
     loadHistory();
     document.getElementById('scanInput').focus();
+
+    // Tutup dropdown combobox saat klik di luar
+    document.addEventListener('click', (e) => {
+        const wrap = document.querySelector('.combo-wrap');
+        if (wrap && !wrap.contains(e.target)) {
+            closeNoMintaDropdown();
+        }
+    });
 });
 
 /* ═══════════════════════════════════════════════════════════
@@ -467,6 +543,84 @@ function generateNoTransaksi() {
     const no  = `G${yy}${mm}${seq}`;
     document.getElementById('noTransaksi').value            = no;
     document.getElementById('displayNoTransaksi').textContent = no;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   COMBOBOX — No Permintaan (searchable)
+   ═══════════════════════════════════════════════════════════ */
+function openNoMintaDropdown() {
+    document.getElementById('noMintaDropdown').classList.add('open');
+    filterNoMinta();
+}
+
+function closeNoMintaDropdown() {
+    document.getElementById('noMintaDropdown').classList.remove('open');
+}
+
+function filterNoMinta() {
+    const q       = document.getElementById('noMintaSearch').value.trim().toLowerCase();
+    const dropdown = document.getElementById('noMintaDropdown');
+    const items    = dropdown.querySelectorAll('.combo-item');
+    let visibleCount = 0;
+
+    items.forEach(item => {
+        const nomor = (item.dataset.nomor || '').toLowerCase();
+        const match = nomor.includes(q);
+        item.style.display = match ? 'flex' : 'none';
+        if (match) visibleCount++;
+    });
+
+    let emptyEl = dropdown.querySelector('.combo-empty-search');
+    if (visibleCount === 0) {
+        if (!emptyEl) {
+            emptyEl = document.createElement('div');
+            emptyEl.className = 'combo-empty combo-empty-search';
+            emptyEl.textContent = 'Tidak ditemukan';
+            dropdown.appendChild(emptyEl);
+        }
+        emptyEl.style.display = 'block';
+    } else if (emptyEl) {
+        emptyEl.style.display = 'none';
+    }
+
+    dropdown.classList.add('open');
+
+    // Toggle tombol clear
+    document.getElementById('noMintaClear').classList.toggle('visible', !!document.getElementById('noMinta').value);
+}
+
+function selectNoMinta(id) {
+    const item = document.querySelector(`#noMintaDropdown .combo-item[data-id="${id}"]`);
+    if (!item) return;
+
+    document.getElementById('noMinta').value       = id;
+    document.getElementById('noMintaSearch').value = item.dataset.nomor;
+    document.getElementById('noMintaClear').classList.add('visible');
+
+    closeNoMintaDropdown();
+    loadPermintaan();
+}
+
+function clearNoMinta() {
+    document.getElementById('noMinta').value       = '';
+    document.getElementById('noMintaSearch').value = '';
+    document.getElementById('noMintaClear').classList.remove('visible');
+
+    document.getElementById('selectBody').innerHTML =
+        `<tr><td class="empty-cell" colspan="7">Pilih No Permintaan untuk memuat item.</td></tr>`;
+    resetPanel();
+}
+
+/**
+ * Set nilai combobox secara terprogram (dipakai saat mode edit).
+ * Kalau nomor belum ada di daftar dropdown (misal karena difilter
+ * status SELESAI di controller), tetap tampilkan id-nya sebagai teks.
+ */
+function setNoMintaValue(id) {
+    const item = document.querySelector(`#noMintaDropdown .combo-item[data-id="${id}"]`);
+    document.getElementById('noMinta').value       = id;
+    document.getElementById('noMintaSearch').value = item ? item.dataset.nomor : `#${id}`;
+    document.getElementById('noMintaClear').classList.toggle('visible', !!id);
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -755,9 +909,17 @@ async function savePengeluaran() {
 
         if (res.ok && data.success) {
             showAlert('Pengeluaran berhasil disimpan!', 'success');
+            const savedNoMinta = document.getElementById('noMinta').value;
             cancelEdit();             // reset state & form
+
             await loadHistory();
-            await loadPermintaan();   // refresh tabel detail (status terupdate)
+            await reloadPermintaanOptions();  // ← refresh daftar & status combobox
+
+            // Muat ulang detail permintaan yang sama supaya status/sisa terbaru terlihat
+            if (savedNoMinta) {
+                setNoMintaValue(savedNoMinta);
+                await loadPermintaan();
+            }
         } else {
             showAlert(data.message || 'Terjadi kesalahan.', 'error');
             btn.disabled = false;
@@ -768,6 +930,32 @@ async function savePengeluaran() {
     }
 
     btn.innerHTML = `<i class="fas fa-save"></i> Simpan Pengeluaran`;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   REFRESH DAFTAR + STATUS COMBOBOX NO PERMINTAAN
+   Dipanggil setelah simpan supaya badge status (PENDING/
+   PROSES/SELESAI) di dropdown langsung ter-update tanpa
+   reload halaman penuh.
+   ═══════════════════════════════════════════════════════════ */
+async function reloadPermintaanOptions() {
+    try {
+        const res  = await fetch(window.location.href, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        const html = await res.text();
+
+        const parser  = new DOMParser();
+        const doc     = parser.parseFromString(html, 'text/html');
+        const newDrop = doc.getElementById('noMintaDropdown');
+
+        if (newDrop) {
+            document.getElementById('noMintaDropdown').innerHTML = newDrop.innerHTML;
+        }
+    } catch (e) {
+        // Kalau gagal refresh, tidak fatal — data tetap tersimpan.
+        console.warn('Gagal refresh daftar permintaan:', e);
+    }
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -790,7 +978,7 @@ async function editData(id) {
 
         // Set permintaan jika ada
         if (d.permintaan_kantong_id) {
-            document.getElementById('noMinta').value = d.permintaan_kantong_id;
+            setNoMintaValue(d.permintaan_kantong_id);
             await loadPermintaan();
 
             // Highlight baris detail yang sesuai
@@ -823,9 +1011,7 @@ function cancelEdit() {
     resetPanel();
     clearTableSelection();
     generateNoTransaksi();
-    document.getElementById('noMinta').value = '';
-    document.getElementById('selectBody').innerHTML =
-        `<tr><td class="empty-cell" colspan="7">Pilih No Permintaan untuk memuat item.</td></tr>`;
+    clearNoMinta();
     document.getElementById('editBadge').classList.remove('visible');
     document.getElementById('btnCancelEdit').style.display = 'none';
 
@@ -851,6 +1037,7 @@ async function deleteData(id) {
         if (data.success) {
             showAlert('Data berhasil dihapus', 'success');
             loadHistory();
+            await reloadPermintaanOptions();
             // Refresh tabel permintaan jika sedang tampil
             if (document.getElementById('noMinta').value) loadPermintaan();
         } else {

@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-
 use App\Models\Donor;
 use App\Models\Kecamatan;
 use App\Models\Kewarganegaraan;
@@ -18,7 +17,8 @@ class DummySeeder extends Seeder
      */
     public function run(): void
     {
-          $donorNames = [
+        // 1. Seed Donor (20 records)
+        $donorNames = [
             'Budi Utomo', 'Siti Aminah', 'Joko Widodo', 'Sri Wahyuni', 'Ahmad Dahlan',
             'Kartini Lestari', 'Hendra Wijaya', 'Dewi Sartika', 'Bambang Pamungkas', 'Megawati Sukarnoputri',
             'Susilo Bambang', 'Ani Yudhoyono', 'Prabowo Subianto', 'Ganjar Pranowo', 'Anies Baswedan',
@@ -70,8 +70,6 @@ class DummySeeder extends Seeder
                     'is_golongan_darah_locked' => false,
                 ]
             );
-
         }
-
     }
 }

@@ -119,6 +119,14 @@
     flex-shrink: 0;
 }
 .selected-badge .badge-remove:hover { color: #922b21; }
+
+/* ─── REQUIRED FIELD MARK (untuk label custom, bukan x-io-*) ─────────── */
+.required-mark { color: #e74c3c; margin-left: 2px; }
+.search-wrap.is-invalid .form-control-sm,
+.fv-row.is-invalid .form-control-sm {
+    border-color: #e74c3c !important;
+    box-shadow: 0 0 0 3px rgba(231,76,60,.12) !important;
+}
 </style>
 
 
@@ -200,13 +208,13 @@
                                 </button>
                             </div>
                             <div class="col-5">
-                                <x-io-input :viewtype="2" name="alamat_1" id="alamat_1" caption="Alamat KTP" :value="$donor->alamat_1 ?? ''" />
+                                <x-io-input :viewtype="2" name="alamat_1" id="alamat_1" caption="Alamat KTP" :value="$donor->alamat_1 ?? ''" required />
                             </div>
                             <div class="col-5">
-                                <x-io-input :viewtype="2" name="alamat_2" id="alamat_2" caption="Alamat Domisili" :value="$donor->alamat_2 ?? ''" />
+                                <x-io-input :viewtype="2" name="alamat_2" id="alamat_2" caption="Alamat Domisili" :value="$donor->alamat_2 ?? ''" required />
                             </div>
                              <div class="col-3">
-                                <x-io-input :viewtype="2" name="kode_pos" caption="Kode Pos" :value="$donor->kode_pos ?? ''" />
+                                <x-io-input :viewtype="2" name="kode_pos" caption="Kode Pos" :value="$donor->kode_pos ?? ''" required />
                             </div>
                              <div class="col-4">
                                     <x-io-input :viewtype="2"
@@ -214,8 +222,9 @@
                                     class="datepicker"
                                     caption="Tanggal Lahir"
                                     :value="!empty($donor->tanggal_lahir)
-                                        ? \Carbon\Carbon::parse($donor->tanggal_lahir)->translatedFormat('d F Y')
-                                        : ''"/>
+                                        ? \Carbon\Carbon::parse($donor->tanggal_lahir)->format('d/m/Y')
+                                        : ''"
+                                    required />
                             </div>
                            
                             <div class="col-4">
@@ -227,7 +236,7 @@
                             {{-- KEWARGANEGARAAN — custom search dropdown --}}
                             <div class="col-4">
                                 <div class="fv-row">
-                                    <label class="form-label fs-8 fw-bold text-muted mb-1">Kewarganegaraan</label>
+                                    <label class="form-label fs-8 fw-bold text-muted mb-1">Kewarganegaraan <span class="required-mark">*</span></label>
                                     <input type="hidden" name="kewarganegaraan_id" id="kewarganegaraan_id"
                                            value="{{ $donor->kewarganegaraan_id ?? '' }}">
                                     <div class="search-wrap" id="wrap_kewarganegaraan">
@@ -235,7 +244,7 @@
                                                class="form-control form-control-sm"
                                                placeholder="Cari kewarganegaraan…"
                                                value="{{ $donor->kewarganegaraan->nama ?? '' }}"
-                                               autocomplete="off">
+                                               autocomplete="off" required>
                                         <button type="button" class="search-clear" id="clear_kewarganegaraan">✕</button>
                                         <div class="search-dropdown" id="dd_kewarganegaraan"></div>
                                     </div>
@@ -245,7 +254,7 @@
                             {{-- WILAYAH — custom search dropdown --}}
                             <div class="col-4">
                                 <div class="fv-row">
-                                    <label class="form-label fs-8 fw-bold text-muted mb-1">Wilayah / Kota</label>
+                                    <label class="form-label fs-8 fw-bold text-muted mb-1">Wilayah / Kota <span class="required-mark">*</span></label>
                                     <input type="hidden" name="wilayah_id" id="wilayah_id"
                                            value="{{ $donor->wilayah_id ?? '' }}">
                                     <div class="search-wrap" id="wrap_wilayah">
@@ -253,7 +262,7 @@
                                                class="form-control form-control-sm"
                                                placeholder="Cari wilayah…"
                                                value="{{ $donor->wilayah->nama ?? '' }}"
-                                               autocomplete="off">
+                                               autocomplete="off" required>
                                         <button type="button" class="search-clear" id="clear_wilayah">✕</button>
                                         <div class="search-dropdown" id="dd_wilayah"></div>
                                     </div>
@@ -263,7 +272,7 @@
                             {{-- KECAMATAN — custom search dropdown --}}
                             <div class="col-4">
                                 <div class="fv-row">
-                                    <label class="form-label fs-8 fw-bold text-muted mb-1">Kecamatan</label>
+                                    <label class="form-label fs-8 fw-bold text-muted mb-1">Kecamatan <span class="required-mark">*</span></label>
                                     <input type="hidden" name="kecamatan_id" id="kecamatan_id"
                                            value="{{ $donor->kecamatan_id ?? '' }}">
                                     <div class="search-wrap" id="wrap_kecamatan">
@@ -271,7 +280,7 @@
                                                class="form-control form-control-sm"
                                                placeholder="Cari kecamatan…"
                                                value="{{ $donor->kecamatan->nama ?? '' }}"
-                                               autocomplete="off">
+                                               autocomplete="off" required>
                                         <button type="button" class="search-clear" id="clear_kecamatan">✕</button>
                                         <div class="search-dropdown" id="dd_kecamatan"></div>
                                     </div>
@@ -280,7 +289,7 @@
                             {{-- PEKERJAAN — custom search dropdown --}}
                             <div class="col-4">
                                 <div class="fv-row">
-                                    <label class="form-label fs-8 fw-bold text-muted mb-1">Pekerjaan</label>
+                                    <label class="form-label fs-8 fw-bold text-muted mb-1">Pekerjaan <span class="required-mark">*</span></label>
                                     <input type="hidden" name="pekerjaan_id" id="pekerjaan_id"
                                            value="{{ $donor->pekerjaan_id ?? '' }}">
                                     <div class="search-wrap" id="wrap_pekerjaan">
@@ -288,7 +297,7 @@
                                                class="form-control form-control-sm"
                                                placeholder="Cari pekerjaan…"
                                                value="{{ $donor->pekerjaan->nama ?? '' }}"
-                                               autocomplete="off">
+                                               autocomplete="off" required>
                                         <button type="button" class="search-clear" id="clear_pekerjaan">✕</button>
                                         <div class="search-dropdown" id="dd_pekerjaan"></div>
                                     </div>
@@ -301,7 +310,7 @@
                                     data-dropdown-parent="#modal_info" />
                             </div>
                             <div class="col-4">
-                                <x-io-input :viewtype="2" name="usia" id="usia" type="number" caption="Usia" :value="$donor->usia ?? ''" readonly />
+                                <x-io-input :viewtype="2" name="usia" id="usia" type="number" caption="Usia" :value="$donor->usia ?? ''" readonly required />
                             </div>
                               <div class="card-header min-h-40px px-4 pt-3 pb-0">
                                 <h6 class="card-title text-muted fw-bold fs-8 text-uppercase m-0">Kontak &amp; Identifikasi</h6>
@@ -310,13 +319,13 @@
                             <div class="card-body px-4 pt-3 pb-4">
                                 <div class="row g-2">
                                     <div class="col-4">
-                                        <x-io-input :viewtype="2" name="no_telp" caption="No. Telepon" :value="$donor->no_telp ?? ''" />
+                                        <x-io-input :viewtype="2" name="no_telp" caption="No. Telepon" :value="$donor->no_telp ?? ''" required/>
                                     </div>
                                     <div class="col-4">
-                                        <x-io-input :viewtype="2" name="no_ktp" id="no_ktp" caption="No. KTP" :value="$donor->no_ktp ?? ''" />
+                                        <x-io-input :viewtype="2" name="no_ktp" id="no_ktp" caption="No. KTP" :value="$donor->no_ktp ?? ''" required/>
                                     </div>
                                     <div class="col-4">
-                                        <x-io-input :viewtype="2" name="no_sim" caption="No. SIM" :value="$donor->no_sim ?? ''" />
+                                        <x-io-input :viewtype="2" name="no_sim" caption="No. SIM" :value="$donor->no_sim ?? ''" required/>
                                     </div>
                                 </div>
                             </div>
@@ -476,18 +485,15 @@
                     <div class="card-body px-4 pt-3 pb-4">
                         <div class="row g-2">
                            <div class="col-4">
-                                <x-io-select :viewtype="2" name="cekal" caption="Status Cekal"
-                                             :options="[0 => 'Tidak Dicekal', 1 => 'Dicekal']"
-                                             :value="$donor->cekal ?? 0"
-                                             data-dropdown-parent="#modal_info" />
+                                <x-io-input :viewtype="2" name="cekal" id="cekal"  readonly />
                             </div>
-                            <div class="col-4">
+                            <!-- <div class="col-4">
                                 <x-io-input :viewtype="2" name="no_cekal" caption="No. Cekal" :value="$donor->no_cekal ?? ''" />
                             </div>
                             <div class="col-4">
                                 <x-io-input :viewtype="2" name="tanggal_cekal" type="datepicker" caption="Tanggal Cekal"
                                             :value="formatDate($donor->tanggal_cekal ?? '')" />
-                        </div>
+                            </div> -->
                         </div>
                        
                     </div>
@@ -604,6 +610,7 @@
             $hidden.val(item.id);
             toggleClear();
             $dd.removeClass('open').empty();
+            $input.closest('.search-wrap').removeClass('is-invalid');
             if (typeof cfg.onSelect === 'function') cfg.onSelect(item);
         }
 
@@ -758,14 +765,64 @@ registerSearchDropdown({
 });
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   VALIDASI FIELD WAJIB UNTUK DROPDOWN CUSTOM SEBELUM SUBMIT
+   (kewarganegaraan, wilayah, kecamatan, pekerjaan disimpan di hidden input,
+   jadi atribut HTML5 "required" di kotak teksnya saja tidak cukup untuk
+   memastikan user benar2 memilih item dari hasil pencarian)
+═══════════════════════════════════════════════════════════════════════════ */
+function validateRequiredDropdowns() {
+    var requiredDropdowns = [
+        { hidden: '#kewarganegaraan_id', wrap: '#wrap_kewarganegaraan', label: 'Kewarganegaraan' },
+        { hidden: '#wilayah_id',         wrap: '#wrap_wilayah',         label: 'Wilayah / Kota' },
+        { hidden: '#kecamatan_id',       wrap: '#wrap_kecamatan',       label: 'Kecamatan' },
+        { hidden: '#pekerjaan_id',       wrap: '#wrap_pekerjaan',       label: 'Pekerjaan' },
+    ];
+
+    var firstInvalid = null;
+    var messages = [];
+
+    requiredDropdowns.forEach(function (item) {
+        var val = $(item.hidden).val();
+        var $wrap = $(item.wrap);
+        if (!val) {
+            $wrap.addClass('is-invalid');
+            messages.push(item.label);
+            if (!firstInvalid) firstInvalid = $wrap;
+        } else {
+            $wrap.removeClass('is-invalid');
+        }
+    });
+
+    if (messages.length) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Lengkapi Data Wajib',
+            html: 'Field berikut wajib dipilih dari daftar pencarian:<br><b>' + messages.join(', ') + '</b>'
+        });
+        if (firstInvalid) firstInvalid.find('input[type="text"]').trigger('focus');
+        return false;
+    }
+
+    return true;
+}
+
+$('#form_info').on('submit', function (e) {
+    if (!validateRequiredDropdowns()) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return false;
+    }
+});
+
+/* ═══════════════════════════════════════════════════════════════════════════
    SISA SCRIPT (tidak berubah dari versi asli)
 ═══════════════════════════════════════════════════════════════════════════ */
 
 // ── AUTO VALIDASI FPUP ────────────────────────────────────────────────────
-let fpupLoaded = false;
+window.fpupLoaded = window.fpupLoaded || false;
 
 $('[name="no_fpup"]').on('change blur', function () {
-    if (fpupLoaded) return;
+    if (window.fpupLoaded) return;
     let no_fpup = $(this).val().trim();
     if (no_fpup === '') return;
 
@@ -826,11 +883,12 @@ $('[name="no_fpup"]').on('change blur', function () {
                 cancelButtonText : 'NO'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    fpupLoaded = true;
+                    window.fpupLoaded = true;
                     $('#fpup_id').val(fpup.fpup_id);
                     $('[name="nama"]').val(fpup.nama_pasien ?? '');
                     $('[name="tanggal_lahir"]').val(fpup.tgl_lahir ?? '');
                     $('[name="usia"]').val(fpup.umur ?? '');
+                    updateUsiaHighlight();
                     $('[name="alamat_1"]').val(fpup.alamat ?? '');
 
                     let gol = fpup.gol_darah ?? '';
@@ -871,6 +929,30 @@ $(document).ready(function () {
     updatePositiveHighlight('[name="golongan_rhesus"]');
 });
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   ★ HIGHLIGHT WARNA USIA
+   Donor di luar rentang umur layak donor (17–60 tahun) ditandai warna
+   merah pada kotak Usia, supaya petugas langsung sadar tanpa harus
+   menghitung manual. Dalam rentang umur normal warnanya dikembalikan
+   ke tampilan biasa.
+═══════════════════════════════════════════════════════════════════════════ */
+const USIA_MIN = 17;
+const USIA_MAX = 60;
+
+function updateUsiaHighlight() {
+    let el   = $('#usia');
+    let usia = parseInt(el.val());
+
+    // bersihkan dulu semua kemungkinan warna sebelumnya
+    el.removeClass('border-danger bg-danger text-white fw-bold');
+
+    if (isNaN(usia)) return;
+
+    if (usia < USIA_MIN || usia > USIA_MAX) {
+        el.addClass('border-danger bg-danger text-white fw-bold');
+    }
+}
+
 // ── HITUNG USIA ───────────────────────────────────────────────────────────
 function hitungUsia(tgl) {
     if (!tgl) return '';
@@ -884,10 +966,12 @@ function hitungUsia(tgl) {
 }
 $('[name="tanggal_lahir"]').on('change input', function () {
     $('#usia').val(hitungUsia($(this).val()));
+    updateUsiaHighlight();
 });
 $(document).ready(function () {
     let tgl = $('[name="tanggal_lahir"]').val();
     if (tgl) $('#usia').val(hitungUsia(tgl));
+    updateUsiaHighlight();
 });
 
 // ── AUTO CHECK PENGHARGAAN ────────────────────────────────────────────────
@@ -907,7 +991,7 @@ $(document).ready(function () {
     $('.datepicker').flatpickr({
     locale: "id",
     altInput: true,
-    altFormat: "d F Y",
+    altFormat: "d/m/Y",
     dateFormat: "Y-m-d",
     allowInput: true
 });
@@ -935,7 +1019,7 @@ $('#gol_darah_buttons .btn-gol-darah, #rhesus_buttons .btn-rhesus').prop('disabl
 @endif
 
 // ── AUTO DONOR KE dari NO KTP ─────────────────────────────────────────────
-let _donor_ke_timer = null;
+window._donor_ke_timer = window._donor_ke_timer || null;
 $('[name="no_ktp"]').on('input change', function () {
     let no_ktp = $(this).val().trim();
     if (no_ktp.length < 16) return;
@@ -979,12 +1063,12 @@ $('#btn_hapus_foto').on('click', function () {
 });
 
 // ── FOTO: KAMERA ──────────────────────────────────────────────────────────
-let _camera_stream = null;
+window._camera_stream = window._camera_stream || null;
 $('#btn_capture').on('click', function () {
     $('#camera_area').removeClass('d-none');
     navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
         .then(function (stream) {
-            _camera_stream = stream;
+            window._camera_stream = stream;
             $('#camera_video')[0].srcObject = stream;
         })
         .catch(function (err) {
@@ -1006,7 +1090,7 @@ $('#btn_snap').on('click', function () {
 });
 $('#btn_cancel_camera').on('click', function () { stop_camera(); });
 function stop_camera() {
-    if (_camera_stream) { _camera_stream.getTracks().forEach(t => t.stop()); _camera_stream = null; }
+    if (window._camera_stream) { window._camera_stream.getTracks().forEach(t=>t.stop()); _camera_stream = null; }
     $('#camera_area').addClass('d-none');
 }
 

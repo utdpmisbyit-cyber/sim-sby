@@ -12,6 +12,8 @@
             $tipeKantong  = optional($pemeriksaanDokter->tipeKantong);
             $jenisKantong = optional($tipeKantong->jenisKantong);
 
+            $asalDarah = optional($log_donor->donor->asalDarah ?? null);
+
             /*
             |--------------------------------------------------------------------------
             | STATUS PEMERIKSAAN KESEHATAN
@@ -77,7 +79,7 @@
 
             <div class="d-flex justify-content-between">
                 <span class="text-dark fs-7">Kode Pendaftaran</span>
-                <span class="fw-bold text-dark fs-7">{{ $log_donor->kode }}</span>
+                <span class="fw-bold text-dark fs-7">{{ $log_donor->donor->no_pendaftaran ?? '-' }}</span>
             </div>
 
             <div class="d-flex justify-content-between">
@@ -141,11 +143,19 @@
                 <span class="fw-bold text-dark fs-7">{{ $pemeriksaanHb->lengan ?? '-' }}</span>
             </div>
 
-            <div class="d-flex justify-content-between">
+            {{-- Asal Darah — editable, cari via select2 dari tabel asal_darah --}}
+            <div class="d-flex justify-content-between align-items-center">
                 <span class="text-dark fs-7">Asal Darah</span>
-                <span class="fw-bold text-dark fs-7">
-                    {{ $log_donor->donor->nama_asal_darah ?? '-' }}
-                </span>
+                <div style="min-width: 220px;">
+                    <select id="select_asal_darah" class="form-select form-select-sm"
+                            data-log-donor-id="{{ $log_donor->id }}">
+                        @if($asalDarah && $asalDarah->id)
+                            <option value="{{ $asalDarah->id }}" selected>
+                                {{ $asalDarah->kode }} - {{ $asalDarah->nama }}
+                            </option>
+                        @endif
+                    </select>
+                </div>
             </div>
 
             <div class="d-flex justify-content-between">
@@ -177,22 +187,26 @@
                     </span>
             </div>
 
-            {{-- Jenis Kantong --}}
-            <div class="d-flex justify-content-between">
-                <span class="text-dark fs-7">Jenis Kantong Yang Digunakan</span>
-                <span class="fw-bold text-dark fs-7">
-                    {{ $jenisKantong->nama ?? '-' }}
-                </span>
+            {{-- ✅ Jenis Kantong — dipindah kesini, editable via select2 --}}
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-dark fs-7">Jenis Kantong</span>
+                <div style="min-width: 220px;">
+                    <select id="select_tipe_kantong" class="form-select form-select-sm"
+                            data-log-donor-id="{{ $log_donor->id }}">
+                        @if($tipeKantong && $tipeKantong->id)
+                            <option value="{{ $tipeKantong->id }}" selected>
+                                {{ $jenisKantong->nama ?? '' }} - {{ $tipeKantong->nama }}
+                            </option>
+                        @endif
+                    </select>
+                </div>
             </div>
 
-            {{-- Type Jenis Kantong --}}
+            {{-- ✅ Alamat Surat — dari donor.alamat_1 --}}
             <div class="d-flex justify-content-between">
-                <span class="text-dark fs-7">Type Jenis Kantong</span>
+                <span class="text-dark fs-7">Alamat Surat</span>
                 <span class="fw-bold text-dark fs-7">
-                    {{ $jenisKantong->nama ?? '-' }}
-                    @if($tipeKantong->nama)
-                        - {{ $tipeKantong->nama }}
-                    @endif
+                    {{ $log_donor->donor->alamat_1 ?? '-' }}
                 </span>
             </div>
 
@@ -202,4 +216,68 @@
 
 <script>
     info({{ $log_donor->aftap->id }});
+
+    // ✅ Select2 Asal Darah
+    $('#select_asal_darah').select2({
+        dropdownParent: $('#info_log_donor'),
+        width: '220px',
+        placeholder: 'Cari asal darah...',
+        minimumInputLength: 1,
+        ajax: {
+            url: "{{ route('aftap.aftap.asal_darah.search') }}",
+            dataType: 'json',
+            delay: 300,
+            data: params => ({ q: params.term }),
+            processResults: data => ({ results: data.results }),
+        }
+    });
+
+    $('#select_asal_darah').on('change', function () {
+        let asal_darah_id = $(this).val();
+        let log_donor_id  = $(this).data('log-donor-id');
+
+        if (!asal_darah_id) return;
+
+        $.post(
+            base_url + '/log_donor/' + log_donor_id + '/asal_darah',
+            { _token, asal_darah_id },
+            function (res) {
+                Swal.fire({ icon: 'success', title: res.message, timer: 1200, showConfirmButton: false });
+            }
+        ).fail((xhr) => {
+            Swal.fire('Error', xhr.responseText, 'error');
+        });
+    });
+
+    // ✅ Select2 Jenis Kantong
+    $('#select_tipe_kantong').select2({
+        dropdownParent: $('#info_log_donor'),
+        width: '220px',
+        placeholder: 'Cari jenis kantong...',
+        minimumInputLength: 0,
+        ajax: {
+            url: "{{ route('aftap.aftap.tipe_kantong.search') }}",
+            dataType: 'json',
+            delay: 300,
+            data: params => ({ q: params.term }),
+            processResults: data => ({ results: data.results }),
+        }
+    });
+
+    $('#select_tipe_kantong').on('change', function () {
+        let tipe_kantong_id = $(this).val();
+        let log_donor_id    = $(this).data('log-donor-id');
+
+        if (!tipe_kantong_id) return;
+
+        $.post(
+            base_url + '/log_donor/' + log_donor_id + '/tipe_kantong',
+            { _token, tipe_kantong_id },
+            function (res) {
+                Swal.fire({ icon: 'success', title: res.message, timer: 1200, showConfirmButton: false });
+            }
+        ).fail((xhr) => {
+            Swal.fire('Error', xhr.responseText, 'error');
+        });
+    });
 </script>

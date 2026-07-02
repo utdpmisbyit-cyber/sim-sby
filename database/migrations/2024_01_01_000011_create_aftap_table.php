@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('status')->default('Pending');
             $table->tinyInteger('bed')->nullable();
             $table->text('lengan')->nullable();
-            $table->text('alamat_surat')->nullable();
+            $table->foreignId('petugas_aftap_id')->constrained('petugas')->cascadeOnUpdate()->restrictOnDelete();
             $table->boolean('bersedia_dikirim_surat')->nullable();
             $table->text('cara_ambil')->nullable();
             $table->boolean('cuci_tangan')->nullable();
@@ -36,6 +36,7 @@ return new class extends Migration
             $table->text('lain_lain')->nullable();
             $table->string('no_kantong')->nullable();
             $table->string('no_selang')->nullable();
+            $table->boolean('donor_sewaktu_puasa')->nullable();
             $table->boolean('penusukan_sulit')->nullable();
             $table->text('reaksi_donor')->nullable();
             $table->boolean('sample_darah')->nullable();

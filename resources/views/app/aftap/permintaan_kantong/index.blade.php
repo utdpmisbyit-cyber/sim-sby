@@ -86,9 +86,12 @@
         grid-template-columns: 1fr 1fr;
         gap: 16px 24px;
     }
-    .form-grid-4 {
+
+    /* ── FIX: Ukuran & Jumlah sekarang jadi kolom sejajar (sibling),
+       bukan bersarang, supaya label & input rata sejajar ── */
+    .form-grid-5 {
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr auto;
+        grid-template-columns: 1.1fr 1.1fr .9fr 1fr auto;
         gap: 16px;
         align-items: end;
     }
@@ -133,6 +136,7 @@
         overflow: hidden;
         height: 40px;
         background: var(--surface);
+        width: 100%;
     }
     .qty-group:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(192,57,43,.12); }
     .qty-btn {
@@ -153,7 +157,8 @@
     }
     .qty-btn:hover { background: var(--primary); color: #fff; }
     .qty-input {
-        width: 60px;
+        flex: 1;
+        min-width: 0;
         text-align: center;
         border: none;
         outline: none;
@@ -384,7 +389,7 @@
 
     @media (max-width: 768px) {
         .form-grid { grid-template-columns: 1fr; }
-        .form-grid-4 { grid-template-columns: 1fr 1fr; }
+        .form-grid-5 { grid-template-columns: 1fr 1fr; }
         .main-card, .history-card { margin: 12px; }
     }
 </style>
@@ -433,7 +438,10 @@
             <span>Tambah Item</span><hr>
         </div>
 
-        <div class="form-grid-4">
+        {{-- ── FIX ALIGNMENT: Merk, Jenis, Ukuran, Jumlah, Tombol
+             sekarang 5 kolom sejajar (sibling), bukan Jumlah
+             bersarang di dalam kolom Ukuran ── --}}
+        <div class="form-grid-5">
             <div class="form-group">
                 <label class="form-label">Merk Kantong</label>
                 <select id="merkKantong" class="form-select">
@@ -443,6 +451,7 @@
                     @endforeach
                 </select>
             </div>
+
             <div class="form-group">
                 <label class="form-label">Jenis Kantong</label>
                 <select id="jenisKantong" class="form-select">
@@ -452,26 +461,27 @@
                     @endforeach
                 </select>
             </div>
+
             <div class="form-group">
                 <label class="form-label">Ukuran</label>
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
-                    <select id="ukuranKantong" class="form-select">
-                        @foreach(\App\Models\PermintaanAftap::UKURAN as $ukuran)
-                            <option value="{{ $ukuran }}">{{ $ukuran }}</option>
-                        @endforeach
-                    </select>
-                    <div class="form-group" style="gap:5px">
-                        <label class="form-label">Jumlah</label>
-                        <div class="qty-group">
-                            <button class="qty-btn" onclick="changeQty(-1)" type="button">−</button>
-                            <input class="qty-input" type="number" id="jumlahKantong" value="1" min="1">
-                            <button class="qty-btn" onclick="changeQty(1)" type="button">+</button>
-                        </div>
-                    </div>
+                <select id="ukuranKantong" class="form-select">
+                    @foreach(\App\Models\PermintaanAftap::UKURAN as $ukuran)
+                        <option value="{{ $ukuran }}">{{ $ukuran }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Jumlah</label>
+                <div class="qty-group">
+                    <button class="qty-btn" onclick="changeQty(-1)" type="button">−</button>
+                    <input class="qty-input" type="number" id="jumlahKantong" value="1" min="1">
+                    <button class="qty-btn" onclick="changeQty(1)" type="button">+</button>
                 </div>
             </div>
-            <div class="form-group" style="padding-top: 20px">
-                <button class="btn-add w-100" type="button" onclick="addItem()">
+
+            <div class="form-group">
+                <button class="btn-add" type="button" onclick="addItem()">
                     <i class="fas fa-plus"></i> Tambah
                 </button>
             </div>
@@ -597,7 +607,7 @@ function addItem() {
     const jenis  = document.getElementById('jenisKantong').value;
     const ukuran = document.getElementById('ukuranKantong').value;
     const jumlah = parseInt(document.getElementById('jumlahKantong').value) || 1;
-    
+
 
     if (!merk)  { showFlash('Merk wajib dipilih', 'error'); return; }
     if (!jenis) { showFlash('Jenis wajib dipilih', 'error'); return; }
@@ -768,7 +778,7 @@ function renderHistory(rows) {
             <td style="font-weight:700">${r.jumlah ?? '—'}</td>
             <td><span class="badge-status ${statusClass[r.status] ?? 'badge-pending'}">${r.status ?? 'PENDING'}</span></td>
             <td>
-           
+
 
                 <button onclick="editData('${r.id ?? ""}')"
                     class="btn-outline" style="padding:5px 10px;font-size:.75rem;margin-left:4px">

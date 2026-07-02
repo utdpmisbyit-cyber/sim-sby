@@ -62,5 +62,5 @@ Route::prefix('laporan')->name('.laporan.')->group(function () {
     ioRouteResource('arus_kas', App\Http\Controllers\Finance\Laporan\ArusKasController::class);
 
     Route::post('posisi_keuangan/search-json', [App\Http\Controllers\Finance\Laporan\PosisiKeuanganController::class, 'searchJson'])->name('posisi_keuangan.search_json');
-    Route::get('aset_netto/search', [App\Http\Controllers\Finance\Laporan\AsetNettoController::class, 'search'])->name('aset_netto.search');
+    // Route::get('aset_netto/search', [App\Http\Controllers\Finance\Laporan\AsetNettoController::class, 'search'])->name('aset_netto.search');
 });

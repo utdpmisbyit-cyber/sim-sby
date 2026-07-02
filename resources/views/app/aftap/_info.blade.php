@@ -14,6 +14,7 @@
     </div>
 
     <div class="card-body pt-6">
+
         <form id="form_info">
             @csrf
 
@@ -66,6 +67,8 @@
                     <span class="fs-7 fw-bold text-primary text-uppercase ls-1">Kondisi & Keterangan</span>
                 </div>
                 <div class="row g-4">
+
+                    {{-- ✅ Sample Darah — name unik: sample_darah --}}
                     <div class="col-md-4">
                         <label class="form-label fs-7 fw-semibold text-gray-700 mb-2">Sample Darah <span class="text-danger">*</span></label>
                         <div class="d-flex gap-4">
@@ -73,6 +76,17 @@
                             <x-radio name="sample_darah" caption="Tidak" :value="false" :checked="($aftap->sample_darah ?? true) == false" />
                         </div>
                     </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fs-7 fw-semibold text-gray-700 mb-2">Kantong Penuh <span class="text-danger">*</span></label>
+                        <div class="d-flex gap-4">
+                            <x-radio name="kantong_penuh" caption="Ya" value="Ya" :checked="($aftap->kantong_penuh ?? 'Ya') == 'Ya'" />
+                            <x-radio name="kantong_penuh" caption="Tidak" value="Tidak" :checked="($aftap->kantong_penuh ?? 'Ya') == 'Tidak'" />
+                            <x-radio name="kantong_penuh" caption="Over" value="Over" :checked="($aftap->kantong_penuh ?? 'Ya') == 'Over'" />
+                        </div>
+                    </div>
+
+                    {{-- Darah Lancar — name unik: darah_lancar --}}
                     <div class="col-md-4">
                         <label class="form-label fs-7 fw-semibold text-gray-700 mb-2">Darah Lancar <span class="text-danger">*</span></label>
                         <div class="d-flex gap-4">
@@ -80,6 +94,8 @@
                             <x-radio name="darah_lancar" caption="Tidak" :value="false" :checked="($aftap->darah_lancar ?? true) == false" />
                         </div>
                     </div>
+
+                    {{-- Cuci Lengan — name unik: cuci_tangan --}}
                     <div class="col-md-4">
                         <label class="form-label fs-7 fw-semibold text-gray-700 mb-2">Cuci Lengan <span class="text-danger">*</span></label>
                         <div class="d-flex gap-4">
@@ -87,6 +103,7 @@
                             <x-radio name="cuci_tangan" caption="Tidak" :value="false" :checked="($aftap->cuci_tangan ?? true) == false" />
                         </div>
                     </div>
+
                     <div class="col-md-4">
                         <label class="form-label fs-7 fw-semibold text-gray-700 mb-2">Penusukan Sulit <span class="text-danger">*</span></label>
                         <div class="d-flex gap-4">
@@ -94,6 +111,16 @@
                             <x-radio name="penusukan_sulit" caption="Tidak" :value="false" :checked="($aftap->penusukan_sulit ?? true) == false" />
                         </div>
                     </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fs-7 fw-semibold text-gray-700 mb-2">Donor Sewaktu Puasa <span class="text-danger">*</span></label>
+                        <div class="d-flex gap-4">
+                            <x-radio name="donor_sewaktu_puasa" caption="Ya" :value="true" :checked="($aftap->donor_sewaktu_puasa ?? true) == true" />
+                            <x-radio name="donor_sewaktu_puasa" caption="Tidak" :value="false" :checked="($aftap->donor_sewaktu_puasa ?? true) == false" />
+                        </div>
+                    </div>
+
+                    {{-- Donor Sewaktu-waktu — name unik: donor_sewaktu_waktu --}}
                     <div class="col-md-4">
                         <label class="form-label fs-7 fw-semibold text-gray-700 mb-2">Donor Sewaktu-waktu <span class="text-danger">*</span></label>
                         <div class="d-flex gap-4">
@@ -101,6 +128,8 @@
                             <x-radio name="donor_sewaktu_waktu" caption="Tidak" :value="false" :checked="($aftap->donor_sewaktu_waktu ?? true) == false" />
                         </div>
                     </div>
+
+                    {{-- Bersedia Dikirim Surat — name unik: bersedia_dikirim_surat --}}
                     <div class="col-md-4">
                         <label class="form-label fs-7 fw-semibold text-gray-700 mb-2">Bersedia Dikirim Surat <span class="text-danger">*</span></label>
                         <div class="d-flex gap-4">
@@ -108,6 +137,7 @@
                             <x-radio name="bersedia_dikirim_surat" caption="Tidak" :value="false" :checked="($aftap->bersedia_dikirim_surat ?? true) == false" onclick="toggle_alamat(true)" />
                         </div>
                     </div>
+
                     <div class="col-md-4">
                         <x-io-input
                             :viewtype="2"
@@ -115,7 +145,6 @@
                             id="cc_ambil"
                             caption="Cc Ambil"
                             :value="$aftap->cc_ambil ?? ''"
-
                         />
                     </div>
                     <div class="col-md-8 d-none" id="catatan_container">
@@ -128,7 +157,7 @@
                     </div>
 
                     <div class="col-md-4">
-                        <x-io-input :viewtype="2" name="satelit" id="satelit" caption="Satelit" :value="$aftap->satelit ?? ''" />
+                        <x-io-input :viewtype="2" name="satelit" id="satelit" caption="Satelit" :value="$aftap->satelit ?? ''" readonly/>
                     </div>
                     <div class="col-md-4">
                         <x-io-input :viewtype="2" readonly name="durasi" caption="Durasi" :value="$aftap->durasi ?? ''" />
@@ -136,31 +165,32 @@
                     <div class="col-md-4">
                         <x-io-input :viewtype="2" name="lain_lain" caption="Lain-lain" :value="$aftap->lain_lain ?? ''" />
                     </div>
-                    <div class="col-md-8">
-                        <x-io-input :viewtype="2" name="alamat_surat" caption="Alamat Surat" :value="$aftap->alamat_surat ?? ''" />
+                    <div class="col-md-4">
+                        <x-io-input :viewtype="2" name="catatan" caption="Catatan" :value="$aftap->catatan ?? ''" />
                     </div>
                 </div>
             </div>
-            <div class="row mb-5">
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">Jenis Kantong</label>
 
-                    <select name="tipe_kantong_id" id="tipe_kantong_id"
-                            class="form-select form-select-solid">
+            <div class="separator separator-dashed mb-5"></div>
 
-                        @foreach(\App\Models\TipeKantong::with('jenisKantong')->get() as $item)
-                            <option value="{{ $item->id }}"
-                                {{ optional($aftap->logDonor->pemeriksaanDokter)->tipe_kantong_id == $item->id ? 'selected' : '' }}>
-
-                                {{ optional($item->jenisKantong)->nama }}
-                                - {{ $item->nama }}
-                            </option>
-                        @endforeach
-
-                    </select>
+           <div class="mb-5">
+                <div class="d-flex align-items-center gap-2 mb-4">
+                    <span class="bullet bullet-dot bg-primary h-8px w-8px"></span>
+                    <span class="fs-7 fw-bold text-primary text-uppercase ls-1">Petugas Pelaksana</span>
+                </div>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label class="form-label fs-7 fw-semibold text-gray-700 mb-2">Cari & Pilih Petugas</label>
+                        <select id="petugas_aftap_id" class="form-select form-select-sm" style="width:100%;">
+                            @if($aftap->petugasAftap)
+                                <option value="{{ $aftap->petugasAftap->id }}" selected>{{ $aftap->petugasAftap->nama }}</option>
+                            @endif
+                        </select>
+                    </div>
                 </div>
             </div>
 
+            
             <div class="separator separator-dashed mb-5"></div>
 
             <div class="d-flex justify-content-end gap-3">
@@ -180,6 +210,34 @@
 <script>
     init_form_element();
     init_form({{ $id }});
+
+   $('#petugas_aftap_id').select2({
+        dropdownParent: $('#form_pemeriksaan_section'),
+        width: '100%',
+        placeholder: 'Cari petugas...',
+        minimumInputLength: 1,
+        ajax: {
+            url: "{{ route('aftap.aftap.petugas.search') }}",
+            dataType: 'json',
+            delay: 300,
+            data: params => ({ q: params.term }),
+            processResults: data => ({ results: data.results }),
+        }
+    });
+
+    $('#petugas_aftap_id').on('change', function () {
+        let petugas_aftap_id = $(this).val();
+        if (!petugas_aftap_id) return;
+
+        $.post(base_url + '/{{ $id }}?_method=put', {
+            _token,
+            petugas_aftap_id
+        }, function () {
+            Swal.fire({ icon: 'success', title: 'Petugas berhasil dipilih', timer: 1200, showConfirmButton: false });
+        }).fail((xhr) => {
+            Swal.fire('Error', xhr.responseText, 'error');
+        });
+    });
 
     toggle_alamat = (status) => {
         $('#alamat_surat').attr('disabled', status);
@@ -247,24 +305,17 @@
                 return;
             }
 
-            // reset form gagal
             $('#manual_cc_container').addClass('d-none');
             $('#catatan_container').addClass('d-none');
 
             $('#cc_manual').val('');
             $('#catatan_gagal').val('').removeAttr('required');
 
-            // default
             $('#status').val('Approved');
 
-            // auto isi
             $('#cc_ambil').val(res.data.cc);
             $('#stop_pada').val(res.data.cc);
             $('#satelit').val(res.data.satelit);
-
-            // =========================================
-            // JIKA STOP
-            // =========================================
 
             if (res.data.is_stop) {
 
@@ -300,24 +351,20 @@
         });
 
     });
-    // =====================================================
-    // VALIDASI STOP PADA — input manual langsung
-    // =====================================================
+
     // =====================================================
     // VALIDASI STOP PADA — input manual langsung
     // =====================================================
 
-    _stopPadaTimer = null; // debounce timer
+    _stopPadaTimer = null;
 
     $('#stop_pada').on('keyup change', function () {
 
-        // Debounce — tunggu user selesai ketik (600ms)
         clearTimeout(_stopPadaTimer);
         _stopPadaTimer = setTimeout(function () {
 
             let raw = $('#stop_pada').val().trim();
 
-            // Jika kosong, reset semua
             if (raw === '') {
                 $('#catatan_container').addClass('d-none');
                 $('#catatan_gagal').removeAttr('required').val('');
@@ -325,22 +372,18 @@
                 return;
             }
 
-            // Jika STOP (dari scan kantong), jangan proses ulang
             if (raw.toUpperCase() === 'STOP') return;
 
             let cc = parseInt(raw);
 
-            // Bukan angka valid
             if (isNaN(cc)) return;
 
-            // cc < 250 = Gagal, tampilkan catatan SAJA (tanpa Swal)
             if (cc > 0 && cc < 250) {
 
                 $('#status').val('Gagal');
                 $('#catatan_container').removeClass('d-none');
                 $('#catatan_gagal').attr('required', true);
 
-                // cc >= 250 = Approved, sembunyikan catatan
             } else if (cc >= 250) {
 
                 $('#status').val('Approved');
@@ -352,9 +395,6 @@
                 $('#status').val('Gagal');
             }
 
-
         }, 600);
     });
-
-
 </script>

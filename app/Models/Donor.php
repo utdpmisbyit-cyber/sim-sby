@@ -54,7 +54,10 @@ class Donor extends Model
     {
         return $this->belongsTo(Pekerjaan::class);
     }
-
+    public function asalDarah()
+    {
+        return $this->belongsTo(AsalDarah::class, 'asal_darah_id');
+    }
     public function logDonor()
     {
         return $this->hasMany(LogDonor::class, 'donor_id','id');

@@ -52,13 +52,15 @@
     font-family: var(--font);
     background: var(--bg-page);
     min-height: 100vh;
-    padding: 24px 20px 56px;
+    padding: 24px 32px 56px;
     -webkit-font-smoothing: antialiased;
     color: var(--text-1);
 }
 
 .pkd-inner {
-    max-width: 1100px;
+    /* ── FIX: sebelumnya 1100px, dilebarkan supaya memanfaatkan
+       layar yang lebih besar ── */
+    max-width: 1440px;
     margin: 0 auto;
 }
 
@@ -170,7 +172,7 @@
 ───────────────────────────── */
 .pkd-form-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 16px;
     margin-bottom: 20px;
 }
@@ -529,6 +531,7 @@
    RESPONSIVE
 ───────────────────────────── */
 @media (max-width: 640px) {
+    .pkd { padding: 16px 12px 40px; }
     .pkd-form-grid { grid-template-columns: 1fr; }
     .pkd-hdr       { flex-direction: column; align-items: flex-start; }
     .pkd-status-row { flex-wrap: wrap; }
@@ -695,7 +698,7 @@
     border: 1px solid var(--line);
     border-radius: var(--r-xl);
     width: 100%;
-    max-width: 760px;
+    max-width: 900px;
     overflow: hidden;
     animation: pkdModalIn .22s ease;
 }
@@ -741,9 +744,14 @@
                 <p>Scan &amp; catat kantong darah yang diterima dari gudang</p>
             </div>
         </div>
-        <div class="pkd-trx-pill">
-            <i class="fas fa-hashtag"></i>
-            {{ $no_transaksi }}
+        <div style="display:flex;align-items:center;gap:10px">
+            <div class="pkd-trx-pill" id="pkdEditBadge" style="display:none;background:#78350F;color:#fff;border-color:transparent">
+                <i class="fas fa-pencil-alt"></i> Mode Edit
+            </div>
+            <div class="pkd-trx-pill" id="pkdTrxPill">
+                <i class="fas fa-hashtag"></i>
+                <span id="pkdTrxPillText">{{ $no_transaksi }}</span>
+            </div>
         </div>
     </div>
 
@@ -882,10 +890,16 @@
                 <i class="fas fa-layer-group" style="font-size:.7rem;opacity:.5"></i>
                 Total: <b id="pkd_total">0</b> kantong
             </div>
-            <button class="pkd-btn-save" id="pkd_btnSave" onclick="pkdSimpan()" disabled>
-                <i class="fas fa-save"></i>
-                Simpan Penerimaan
-            </button>
+            <div style="display:flex;gap:10px;align-items:center">
+                <button class="pkd-btn-page" id="pkdBtnCancelEdit" onclick="pkdCancelEdit()"
+                    style="display:none;width:auto;padding:0 16px;color:#EF4444;border-color:rgba(239,68,68,.35)">
+                    <i class="fas fa-times"></i> Batal Edit
+                </button>
+                <button class="pkd-btn-save" id="pkd_btnSave" onclick="pkdSimpan()" disabled>
+                    <i class="fas fa-save"></i>
+                    <span id="pkdBtnSaveText">Simpan Penerimaan</span>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -928,12 +942,12 @@
                         <th style="text-align:center">FPD Sample</th>
                         <th style="text-align:center">Serologi</th>
                         <th style="text-align:center;color:#16A34A">Sisa Stok</th>
-                        <th style="width:52px;text-align:center">Detail</th>
+                        <th style="width:110px;text-align:center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="pkd_hist_tbody">
                     <tr class="pkd-no-data">
-                        <td colspan="7">
+                        <td colspan="10">
                             <i class="fas fa-search"></i>
                             Klik "Cari" untuk memuat riwayat
                         </td>
@@ -1011,8 +1025,15 @@ const ROUTE_SEARCH_PERMINTAAN  = "{{ route('aftap.penerimaan.search_no_permintaa
 const ROUTE_KANTONG_BY_KELUAR  = "{{ route('aftap.penerimaan.kantong_by_no_keluar') }}";
 const ROUTE_KANTONG_BY_PERM    = "{{ route('aftap.penerimaan.kantong_by_no_permintaan') }}";
  
-const NO_TRANSAKSI  = "{{ $no_transaksi }}";
+let   NO_TRANSAKSI  = "{{ $no_transaksi }}";
 const CSRF          = "{{ csrf_token() }}";
+const ROUTE_NEXT_NO = "{{ route('aftap.penerimaan.next_no_transaksi') }}";
+
+// base URL untuk edit/update/delete 1 transaksi penerimaan, mis:
+// {{ url('aftap/penerimaan_kantong') }}/5/edit  → GET  ambil data utk edit
+// {{ url('aftap/penerimaan_kantong') }}/5       → PUT  update
+// {{ url('aftap/penerimaan_kantong') }}/5       → DELETE hapus
+const PENERIMAAN_BASE_URL = "{{ url('aftap/penerimaan_kantong') }}";
 
 /* ═══════════════════════════════════════
    STATE
@@ -1022,6 +1043,7 @@ let jumlahKirim = null;
 let histPage    = 1;
 let histTotal   = 0;
 const HIST_PER  = 10;
+let editId      = null;   // id transaksi penerimaan yang sedang diedit (null = mode tambah baru)
 
 /* ═══════════════════════════════════════
    TOAST
@@ -1181,7 +1203,7 @@ async function pkdDoScan(no_kantong) {
 }
 
 /* ═══════════════════════════════════════
-   SIMPAN
+   SIMPAN (tambah baru ATAU update jika editId terisi)
 ═══════════════════════════════════════ */
 async function pkdSimpan() {
     const tanggal   = document.getElementById('pkd_tanggal').value;
@@ -1192,27 +1214,31 @@ async function pkdSimpan() {
     if (!no_keluar)       return pkdToast('Isi nomor gudang keluar', 'warn');
     if (items.length===0) return pkdToast('Belum ada kantong yang di-scan', 'warn');
 
-    const btn = document.getElementById('pkd_btnSave');
+    const isEdit = editId !== null;
+    const btn    = document.getElementById('pkd_btnSave');
     btn.disabled  = true;
-    btn.innerHTML = '<i class="fas fa-spinner pkd-spin"></i> Menyimpan...';
+    btn.innerHTML = `<i class="fas fa-spinner pkd-spin"></i> ${isEdit ? 'Memperbarui...' : 'Menyimpan...'}`;
+
+    const url    = isEdit ? `${PENERIMAAN_BASE_URL}/${editId}` : ROUTE_STORE;
+    const method = isEdit ? 'PUT' : 'POST';
+    const payload = isEdit
+        ? { tanggal, kode, no_keluar, items }
+        : { no_transaksi: NO_TRANSAKSI, tanggal, kode, no_keluar, items };
 
     try {
-        const res  = await fetch(ROUTE_STORE, {
-            method : 'POST',
+        const res  = await fetch(url, {
+            method : method,
             headers: { 'Content-Type':'application/json', 'X-CSRF-TOKEN': CSRF },
-            body   : JSON.stringify({ no_transaksi: NO_TRANSAKSI, tanggal, kode, no_keluar, items })
+            body   : JSON.stringify(payload)
         });
         const json = await res.json();
         if (!json.status) throw new Error(json.msg ?? 'Gagal menyimpan');
 
-        pkdToast('Penerimaan berhasil disimpan!', 'ok');
-        items       = [];
-        jumlahKirim = null;
-        pkdRender();
-        document.getElementById('pkd_kirim').textContent   = '–';
-        document.getElementById('pkd_selisih').textContent = '–';
-        document.getElementById('pkd_kode').value          = '';
-        document.getElementById('pkd_no_keluar').value     = '';
+        pkdToast(isEdit ? 'Penerimaan berhasil diperbarui!' : 'Penerimaan berhasil disimpan!', 'ok');
+
+        pkdCancelEdit();   // reset form + state edit + generate no transaksi baru
+        btn.disabled  = false;
+        btn.innerHTML = '<i class="fas fa-save"></i> <span id="pkdBtnSaveText">Simpan Penerimaan</span>';
 
         // refresh badge riwayat & reload jika sedang dibuka
         histTotal = 0;
@@ -1221,9 +1247,130 @@ async function pkdSimpan() {
 
     } catch(e) {
         pkdToast(e.message, 'err');
-    } finally {
         btn.disabled  = false;
-        btn.innerHTML = '<i class="fas fa-save"></i> Simpan Penerimaan';
+        btn.innerHTML = `<i class="fas fa-save"></i> <span id="pkdBtnSaveText">${isEdit ? 'Perbarui Penerimaan' : 'Simpan Penerimaan'}</span>`;
+    }
+}
+
+/* ═══════════════════════════════════════
+   EDIT — muat data transaksi lama ke form
+═══════════════════════════════════════ */
+async function pkdEditData(id) {
+    try {
+        const res  = await fetch(`${PENERIMAAN_BASE_URL}/${id}/edit`, {
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF }
+        });
+        const json = await res.json();
+
+        if (!json.success) {
+            pkdToast(json.message ?? 'Gagal memuat data', 'err');
+            return;
+        }
+
+        const d = json.data;
+
+        editId = d.id;
+
+        document.getElementById('pkd_tanggal').value   = d.tanggal;
+        document.getElementById('pkd_kode').value      = d.kode_permintaan ?? '';
+        document.getElementById('pkd_no_keluar').value = d.no_keluar ?? '';
+
+        items = (d.items || []).map(it => ({
+            no_kantong : it.no_kantong,
+            merk       : it.merk,
+            jenis      : it.jenis,
+            ukuran     : it.ukuran,
+            no_lot     : it.no_lot,
+        }));
+        pkdRender();
+
+        // Jumlah kirim untuk pembanding selisih
+        if (d.no_keluar) pkdFetchJumlah(d.no_keluar);
+
+        // Tampilkan indikator mode edit
+        document.getElementById('pkdEditBadge').style.display   = 'inline-flex';
+        document.getElementById('pkdTrxPillText').textContent   = d.no_transaksi;
+        document.getElementById('pkdBtnCancelEdit').style.display = 'inline-flex';
+        document.getElementById('pkdBtnSaveText').textContent   = 'Perbarui Penerimaan';
+        document.getElementById('pkd_btnSave').disabled = false;
+
+        // Pindah ke tab "Daftar Kantong Discan" supaya form kelihatan
+        pkdSwitchTab('scan');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        pkdToast(`Mode edit aktif — ${d.no_transaksi}`, 'ok');
+
+    } catch (e) {
+        pkdToast('Gagal memuat data untuk edit', 'err');
+    }
+}
+
+/* ═══════════════════════════════════════
+   BATAL EDIT — reset form ke kondisi "tambah baru"
+═══════════════════════════════════════ */
+function pkdCancelEdit() {
+    editId      = null;
+    items       = [];
+    jumlahKirim = null;
+    pkdRender();
+
+    document.getElementById('pkd_kirim').textContent   = '–';
+    document.getElementById('pkd_selisih').textContent = '–';
+    document.getElementById('pkd_kode').value          = '';
+    document.getElementById('pkd_no_keluar').value     = '';
+    document.getElementById('pkd_tanggal').value       = new Date().toISOString().split('T')[0];
+
+    document.getElementById('pkdEditBadge').style.display     = 'none';
+    document.getElementById('pkdBtnCancelEdit').style.display = 'none';
+    document.getElementById('pkdBtnSaveText').textContent     = 'Simpan Penerimaan';
+
+    pkdFetchNewNoTransaksi();
+}
+
+/* ═══════════════════════════════════════
+   HAPUS TRANSAKSI PENERIMAAN
+═══════════════════════════════════════ */
+async function pkdDeleteData(id) {
+    if (!confirm('Yakin hapus transaksi penerimaan ini? Kantong yang sudah diterima akan bisa diterima ulang.')) return;
+
+    try {
+        const res  = await fetch(`${PENERIMAAN_BASE_URL}/${id}`, {
+            method : 'DELETE',
+            headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' }
+        });
+        const json = await res.json().catch(() => ({}));
+
+        if (res.ok && json.status) {
+            pkdToast('Transaksi berhasil dihapus', 'ok');
+
+            // Kalau yang sedang diedit adalah yang barusan dihapus, batalkan mode edit
+            if (editId === id) pkdCancelEdit();
+
+            histTotal = 0;
+            pkdLoadHistory(true);
+        } else {
+            pkdToast(json.msg ?? json.message ?? 'Gagal menghapus', 'err');
+        }
+    } catch (e) {
+        pkdToast('Koneksi error saat menghapus', 'err');
+    }
+}
+
+/* ═══════════════════════════════════════
+   Ambil no transaksi baru (dipakai setelah batal edit / simpan sukses)
+   agar transaksi berikutnya tidak bentrok "no_transaksi sudah pernah
+   dipakai" — tanpa reload halaman supaya toast tetap terlihat.
+═══════════════════════════════════════ */
+async function pkdFetchNewNoTransaksi() {
+    try {
+        const res  = await fetch(ROUTE_NEXT_NO, { headers: { 'Accept': 'application/json' } });
+        const json = await res.json();
+        if (json.no_transaksi) {
+            NO_TRANSAKSI = json.no_transaksi;
+            document.getElementById('pkdTrxPillText').textContent = NO_TRANSAKSI;
+        }
+    } catch (e) {
+        console.warn('Gagal ambil no transaksi baru', e);
     }
 }
 
@@ -1269,9 +1416,30 @@ async function pkdLoadHistory(silent = false) {
         rows.forEach((row, i) => {
             const offset = (histPage - 1) * HIST_PER;
  
-            // Warna sisa stok
-            const sisa      = row.sisa_stok ?? 0;
-            const sisaColor = sisa === 0 ? '#EF4444' : sisa < 5 ? '#F59E0B' : '#16A34A';
+            // ── Warna sisa stok (3 tingkat, sinkron teks + background + border) ──
+            // 0            → merah  (habis)
+            // 1..LOW_STOCK → kuning (hampir habis / warning)
+            // > LOW_STOCK  → hijau  (aman)
+            const LOW_STOCK_THRESHOLD = 5;
+            const sisa = row.sisa_stok ?? 0;
+
+            let sisaColor, sisaBg, sisaBorder, sisaIcon;
+            if (sisa === 0) {
+                sisaColor  = '#EF4444';
+                sisaBg     = 'rgba(239,68,68,.14)';
+                sisaBorder = 'rgba(239,68,68,.35)';
+                sisaIcon   = '<i class="fas fa-times-circle" style="font-size:.65rem;margin-right:3px"></i>';
+            } else if (sisa < LOW_STOCK_THRESHOLD) {
+                sisaColor  = '#B45309';
+                sisaBg     = 'rgba(245,158,11,.16)';
+                sisaBorder = 'rgba(245,158,11,.4)';
+                sisaIcon   = '<i class="fas fa-exclamation-triangle" style="font-size:.62rem;margin-right:3px"></i>';
+            } else {
+                sisaColor  = '#16A34A';
+                sisaBg     = 'rgba(34,197,94,.12)';
+                sisaBorder = 'rgba(34,197,94,.25)';
+                sisaIcon   = '';
+            }
  
             const tr = document.createElement('tr');
             tr.className = 'pkd-row-in';
@@ -1297,11 +1465,22 @@ async function pkdLoadHistory(silent = false) {
                     </span>
                 </td>
                 <td style="text-align:center">
-                    <span class="pkd-badge" style="background:${sisa===0?'rgba(239,68,68,.12)':'rgba(34,197,94,.12)'};color:${sisaColor};border-color:${sisa===0?'rgba(239,68,68,.25)':'rgba(34,197,94,.25)'};font-size:.75rem;font-weight:800">
-                        ${sisa}
+                    <span class="pkd-badge" style="background:${sisaBg};color:${sisaColor};border-color:${sisaBorder};font-size:.75rem;font-weight:800">
+                        ${sisaIcon}${sisa}
                     </span>
                 </td>
-                <td style="text-align:center">
+                <td style="text-align:center;white-space:nowrap">
+                    <button class="pkd-btn-detail"
+                        onclick="pkdEditData(${row.id})"
+                        title="Edit"
+                        style="color:#3B82F6">
+                        <i class="fas fa-pencil-alt"></i>
+                    </button>
+                    <button class="pkd-btn-del"
+                        onclick="pkdDeleteData(${row.id})"
+                        title="Hapus">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
                     <button class="pkd-btn-detail"
                         onclick="pkdShowDetail(${row.id}, '${row.no_transaksi}', '${row.tanggal}')"
                         title="Lihat detail">

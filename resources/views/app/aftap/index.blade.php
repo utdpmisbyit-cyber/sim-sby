@@ -9,52 +9,71 @@
 
 @section('content')
     <div class="content flex-column-fluid" id="kt_content">
-        <div class="card card-flush rounded-4 border-0 shadow-xs mb-6">
-            <div class="card-body py-5">
-                <div class="d-flex flex-row justify-content-between align-items-center">
-                    <div class="d-flex flex-column">
-                        <h1 class="d-flex align-items-center my-1">
-                            <span class="text-dark fw-bold fs-1">Aftap</span>
-                        </h1>
-                        @include('layouts._breadcrumb')
-                    </div>
-                    <div class="d-flex gap-3">
-                        <span class="badge badge-light-primary rounded-3 fs-7 text-dark fw-semibold px-4 py-3">
-                            <i class="ki-duotone ki-calendar fs-5 me-1">
-                                <span class="path1"></span><span class="path2"></span>
-                            </i>
-                            {{ fulldate(date('Y-m-d'), " ") }}
-                        </span>
-                        <a href="{{ route('aftap.aftap.display_antrian') }}" target="_blank"
-                           class="btn btn-sm btn-light-danger fw-semibold">
-                            <i class="ki-duotone ki-screen fs-5 me-1">
-                                <span class="path1"></span><span class="path2"></span>
-                                <span class="path3"></span><span class="path4"></span>
-                            </i>
-                            Display Antrian
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
+                        <div class="card card-flush rounded-4 border-0 shadow-xs mb-6">
+                            <div class="card-body py-5">
+                                <div class="d-flex flex-row justify-content-between align-items-center">
+                                    <div class="d-flex flex-column">
+                                        <h1 class="d-flex align-items-center my-1">
+                                            <span class="text-dark fw-bold fs-1">Aftap</span>
+                                        </h1>
+                                        @include('layouts._breadcrumb')
+                                    </div>
+                                    <div class="d-flex gap-3">
+                                        <span class="badge badge-light-primary rounded-3 fs-7 text-dark fw-semibold px-4 py-3">
+                                            <i class="ki-duotone ki-calendar fs-5 me-1">
+                                                <span class="path1"></span><span class="path2"></span>
+                                            </i>
+                                            {{ fulldate(date('Y-m-d'), " ") }}
+                                        </span>
+                                        <a href="{{ route('aftap.aftap.display_antrian') }}" target="_blank"
+                                        class="btn btn-sm btn-light-danger fw-semibold">
+                                            <i class="ki-duotone ki-screen fs-5 me-1">
+                                                <span class="path1"></span><span class="path2"></span>
+                                                <span class="path3"></span><span class="path4"></span>
+                                            </i>
+                                            Display Antrian
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-        @if(empty($active_cabang))
-            <div class="card card-flush rounded-4 border-0 shadow-xs mb-6">
-                <div class="card-body">
-                    <h5 class="text-center my-10">- Cabang Aktif Kosong -</h5>
-                </div>
-            </div>
-        @endif
+                        @if(empty($active_cabang))
+                            <div class="card card-flush rounded-4 border-0 shadow-xs mb-6">
+                                <div class="card-body">
+                                    <h5 class="text-center my-10">- Cabang Aktif Kosong -</h5>
+                                </div>
+                            </div>
+                        @endif
 
-        @if(!empty($active_cabang))
-            <div class="row g-6">
-                <div class="col-md-4" id="table_log_donor"></div>
+                        @if(!empty($active_cabang))
+                            <div class="row g-6">
+                                <div class="col-md-4">
+                    <div class="card card-flush rounded-4 border-0 shadow-xs mb-4">
+                        <div class="card-body py-4">
+                            <label class="form-label fs-7 fw-semibold text-gray-700 mb-2">
+                                Scan / Ketik No. Pendaftaran
+                            </label>
+                            <div class="position-relative">
+                                <i class="ki-duotone ki-barcode fs-3 position-absolute ms-3 top-50 translate-middle-y text-primary">
+                                    <span class="path1"></span><span class="path2"></span>
+                                </i>
+                                <input type="text" id="input_scan_no_pendaftaran"
+                                    class="form-control form-control-solid ps-11"
+                                    placeholder="Scan barcode / ketik No. Pendaftaran lalu Enter"
+                                    autocomplete="off">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="table_log_donor"></div>
+                </div>
                 <div class="col-md-8">
                     <div class="card card-flush rounded-4 border-0 shadow-xs h-100" id="card_search">
                         <form class="card-header pt-6" id="form_search">
                             @csrf
                             <div class="card-title flex-column">
-                                <h3 class="fw-bold fs-4 text-dark mb-1">Antrian Hari Ini</h3>
+                                <h3 class="fw-bold fs-4 text-dark mb-1">Data Hari Ini</h3>
                                 <div class="fs-7 text-muted">
                                     <span id="total_pemeriksaan_dokter">0</span> riwayat pemeriksaan
                                 </div>
@@ -119,6 +138,47 @@
 
 @push('scripts')
 <script>
+let $input_scan = $('#input_scan_no_pendaftaran');
+
+$input_scan.on('keypress', function (e) {
+    if (e.which === 13) { // Enter
+        e.preventDefault();
+        scan_no_pendaftaran();
+    }
+});
+
+let scan_no_pendaftaran = () => {
+    let no_pendaftaran = $input_scan.val().trim();
+    if (!no_pendaftaran) return;
+
+    $.post(base_url + '/log_donor/scan', { _token, no_pendaftaran }, (res) => {
+
+        $input_scan.val('').focus();
+
+        if (res.success) {
+            select_log(res.id);   // load info donor -> otomatis memicu form aftap (info(aftap_id))
+            search_log_donor();   // refresh daftar antrian
+        }
+
+    }).fail((xhr) => {
+        $input_scan.val('').focus();
+
+        let msg = 'No. Pendaftaran tidak ditemukan di antrian hari ini';
+        try { msg = JSON.parse(xhr.responseText).message; } catch (e) {}
+
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal',
+            text: msg,
+            timer: 2000,
+            showConfirmButton: false
+        });
+    });
+};
+
+// auto-focus supaya siap nembak scan tanpa klik dulu
+$input_scan.trigger('focus');
+
     let _token   = '{{ csrf_token() }}';
     let base_url = '{{ route('aftap.aftap.index') }}';
 
@@ -306,7 +366,6 @@ let speak_antrian = (nama, nomorAntrian, tujuan) => {
     window.speechSynthesis.speak(speech);
 };
 
-// ✅ print_antrian thermal 80mm
 let print_antrian = (nama, kodeAftap, kodeLog, tanggal) => {
     let content = `
     <html>
@@ -355,7 +414,6 @@ let print_antrian = (nama, kodeAftap, kodeLog, tanggal) => {
     setTimeout(() => { try { w.print(); w.close(); } catch(e) {} }, 500);
 };
 
-// ✅ kirim WA via wa.me
 let kirim_wa = (logDonorId, noHp, nama, kodeAftap, kodeLog, tanggal) => {
     let pesan =
 `&#x1F3E5; *UNIT TRANSFUSI DARAH*

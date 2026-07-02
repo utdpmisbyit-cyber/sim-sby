@@ -39,21 +39,27 @@ class AftapController extends Controller
         return view('app.aftap._table', compact('aftaps'));
     }
 
-        public function edit($id)
+    public function edit($id)
     {
-        
         $aftap = \App\Models\Aftap::with([
             'logDonor.pemeriksaanDokter.tipeKantong.jenisKantong',
             'logDonor.pemeriksaanHb',
-            'logDonor.donor',
+            'logDonor.donor.asalDarah',
+            'dokter',
         ])->findOrFail($id);
 
         return view('app.aftap._info', compact('aftap', 'id'));
     }
 
-     public function update(Request $request, $id)
+    public function update(Request $request, $id)
     {
-       
+         if ($request->has('petugas_aftap_id')) {
+
+            return $this->aftapService->update([
+                'petugas_aftap_id' => $request->input('petugas_aftap_id')
+            ], $id);
+        }
+
         if ($request->has('dokter_id')) {
 
             return $this->aftapService->update([
@@ -61,20 +67,16 @@ class AftapController extends Controller
             ], $id);
         }
 
-      
         $logDonor = \App\Models\LogDonor::with([
             'donor',
             'pemeriksaanHb',
             'pemeriksaanDokter'
         ])->findOrFail($request->log_donor_id);
 
-      
         $asalDarahId = optional($logDonor->donor)->asal_darah_id;
 
-       
         $lengan = optional($logDonor->pemeriksaanHb)->lengan ?? 'kiri';
 
-        
         $cc_raw = null;
 
         if ($request->filled('cc_manual')) {
@@ -92,7 +94,6 @@ class AftapController extends Controller
         $cc     = 0;
         $status = 'Approved';
 
-       
         if (!is_null($cc_raw)) {
 
             $cc = (int) $cc_raw;
@@ -115,10 +116,8 @@ class AftapController extends Controller
             $status = 'Gagal';
         }
 
-       
         $kantongPenuh = $cc >= 250 ? 1 : 0;
 
-       
         $request->merge([
             'asal_darah_id' => $asalDarahId,
             'lengan'         => $lengan,
@@ -127,7 +126,7 @@ class AftapController extends Controller
                                     ? $cc
                                     : $request->stop_pada,
             'kantong_penuh'  => $kantongPenuh,
-            
+
             'status'         => $status,
         ]);
 
@@ -141,7 +140,6 @@ class AftapController extends Controller
             ]);
         }
 
-        
         if ($request->filled('asal_darah')) {
 
             \App\Models\PemeriksaanDokter::where(
@@ -152,13 +150,11 @@ class AftapController extends Controller
             ]);
         }
 
-        
         $aftap = $this->aftapService->update(
             $request->all(),
             $id
         );
 
-        
         $this->logDonorService->update([
             'step' => 'Aftap'
         ], $aftap->log_donor_id);
@@ -170,7 +166,7 @@ class AftapController extends Controller
         ]);
     }
 
-        public function log_donor_search(Request $request)
+    public function log_donor_search(Request $request)
     {
         $log_donors = \App\Models\LogDonor::with([
                 'donor',
@@ -178,35 +174,70 @@ class AftapController extends Controller
                 'aftap',
                 'aftap.petugasPanggil',
             ])
-            ->whereDate('created_at', date('Y-m-d'))  // ← hapus prefix tabel
+            ->whereDate('created_at', date('Y-m-d'))
             ->whereHas('aftap', function ($q) {
                 $q->whereIn('status', ['Pending', 'Ongoing']);
             })
-            ->orderBy('created_at', 'asc')             // ← hapus prefix tabel
+            ->orderBy('created_at', 'asc')
             ->get();
 
         return view('app.aftap.log_donor._table', compact('log_donors'));
     }
 
+    /**
+     * Cari log_donor berdasarkan no_pendaftaran donor (untuk scan barcode).
+     */
+    public function log_donor_scan(Request $request)
+    {
+        $request->validate([
+            'no_pendaftaran' => 'required|string',
+        ]);
+
+        $log_donor = \App\Models\LogDonor::with(['donor', 'aftap'])
+            ->whereHas('donor', function ($q) use ($request) {
+                $q->where('no_pendaftaran', $request->no_pendaftaran);
+            })
+            ->whereDate('created_at', date('Y-m-d'))
+            ->whereHas('aftap', function ($q) {
+                $q->whereIn('status', ['Pending', 'Ongoing']);
+            })
+            ->latest()
+            ->first();
+
+        if (!$log_donor) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No. Pendaftaran tidak ditemukan di antrian aftap hari ini',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'id'      => $log_donor->id,
+            'nama'    => $log_donor->donor->nama,
+        ]);
+    }
+
     public function log_donor_show($id)
     {
-    $log_donor = \App\Models\LogDonor::with([
-        'donor',
-        'donor.logDonorAftap',
-        'donor.logDonorAftap.pemeriksaanDokter',
-        'donor.logDonorAftap.pemeriksaanDokter.tipeKantong',
+        $log_donor = \App\Models\LogDonor::with([
+            'donor',
+            'donor.asalDarah',
+            'donor.logDonorAftap',
+            'donor.logDonorAftap.pemeriksaanDokter',
+            'donor.logDonorAftap.pemeriksaanDokter.tipeKantong',
 
-        'aftap',
-        'pemeriksaanHb',
-        'pemeriksaanDokter',
-        'pemeriksaanDokter.tipeKantong',
-        'pemeriksaanDokter.tipeKantong.jenisKantong',
-    ])->findOrFail($id);
+            'aftap',
+            'pemeriksaanHb',
+            'pemeriksaanDokter',
+            'pemeriksaanDokter.tipeKantong',
+            'pemeriksaanDokter.tipeKantong.jenisKantong',
+        ])->findOrFail($id);
 
         return view('app.aftap.log_donor._info', compact('log_donor'));
     }
 
-        public function panggil(Request $request, $id)
+    public function panggil(Request $request, $id)
     {
         $request->validate(['bed' => 'required|integer|min:1|max:18']);
 
@@ -221,7 +252,6 @@ class AftapController extends Controller
 
         $prefix = ($lengan === 'kanan') ? 'A' : 'B';
 
-        // ambil 4 digit belakang kode log donor
         $angkaAsli = (int) substr($log_donor->kode, -4);
         $angkaAntrian = str_pad($angkaAsli, 3, '0', STR_PAD_LEFT);
         $nomor_antrian = $prefix . $angkaAntrian;
@@ -234,7 +264,7 @@ class AftapController extends Controller
             'status'             => 'Ongoing',
             'bed'                => $request->bed,
             'nomor_antrian'      => $nomor_antrian,
-            'lengan'             => $lengan,  
+            'lengan'             => $lengan,
             'petugas_panggil_id' => $petugas_id,
             'dokter_id'          => $petugas_id,
             'called_at'          => now(),
@@ -246,13 +276,145 @@ class AftapController extends Controller
             'success'       => true,
             'aftap_id'      => $aftap->id,
             'bed'           => $request->bed,
-            'nomor_antrian' => $nomor_antrian, 
-            'no_urut'       => $noUrut,    
-            'lengan'        => $lengan,   
+            'nomor_antrian' => $nomor_antrian,
+            'no_urut'       => $noUrut,
+            'lengan'        => $lengan,
             'nama'          => $log_donor->donor->nama,
             'kode'          => $log_donor->kode,
             'petugas'       => $petugas?->nama ?? '',
             'called_at'     => now()->format('H:i:s'),
+        ]);
+    }
+
+    /**
+     * Update asal darah untuk donor + aftap terkait log_donor tertentu.
+     */
+    public function update_asal_darah(Request $request, $id)
+    {
+        $request->validate([
+            'asal_darah_id' => 'required|exists:asal_darah,id',
+        ]);
+
+        $logDonor  = \App\Models\LogDonor::with(['donor', 'aftap', 'pemeriksaanDokter'])->findOrFail($id);
+        $asalDarah = \App\Models\AsalDarah::findOrFail($request->asal_darah_id);
+
+        // update tabel donor
+        $logDonor->donor->update([
+            'asal_darah_id'   => $asalDarah->id,
+            'nama_asal_darah' => $asalDarah->nama,
+        ]);
+
+        // update tabel aftap (jika record aftap sudah ada)
+        if ($logDonor->aftap) {
+            $logDonor->aftap->update([
+                'asal_darah_id' => $asalDarah->id,
+            ]);
+        }
+
+        // sinkronkan juga field teks bebas di pemeriksaan_dokter (dipakai form aftap)
+        if ($logDonor->pemeriksaanDokter) {
+            $logDonor->pemeriksaanDokter->update([
+                'asal_darah' => $asalDarah->nama,
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Asal darah berhasil diperbarui',
+            'data'    => [
+                'asal_darah_id' => $asalDarah->id,
+                'nama'          => $asalDarah->nama,
+            ],
+        ]);
+    }
+
+    public function update_tipe_kantong(Request $request, $id)
+{
+    $request->validate([
+        'tipe_kantong_id' => 'required|exists:tipe_kantong,id',
+    ]);
+
+    $logDonor = \App\Models\LogDonor::with('pemeriksaanDokter')->findOrFail($id);
+
+    if (!$logDonor->pemeriksaanDokter) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Data pemeriksaan dokter untuk log donor ini belum tersedia',
+        ], 422);
+    }
+
+    $logDonor->pemeriksaanDokter->update([
+        'tipe_kantong_id' => $request->tipe_kantong_id,
+    ]);
+
+    $tipeKantong = \App\Models\TipeKantong::with('jenisKantong')->find($request->tipe_kantong_id);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Jenis kantong berhasil diperbarui',
+        'data'    => [
+            'id'   => $tipeKantong->id,
+            'text' => optional($tipeKantong->jenisKantong)->nama . ' - ' . $tipeKantong->nama,
+        ],
+    ]);
+}
+
+
+public function search_tipe_kantong(Request $request)
+{
+    $q = $request->get('q');
+
+    $data = \App\Models\TipeKantong::with('jenisKantong')
+        ->when($q, fn($query) => $query->where('nama', 'like', "%{$q}%"))
+        ->limit(20)
+        ->get();
+
+    return response()->json([
+        'results' => $data->map(fn($item) => [
+            'id'   => $item->id,
+            'text' => optional($item->jenisKantong)->nama . ' - ' . $item->nama,
+        ]),
+    ]);
+}
+    public function search_asal_darah(Request $request)
+    {
+        $q = $request->get('q');
+
+        $data = \App\Models\AsalDarah::query()
+            ->when($q, function ($query) use ($q) {
+                $query->where('nama', 'like', "%{$q}%")
+                      ->orWhere('kode', 'like', "%{$q}%");
+            })
+            ->orderBy('nama')
+            ->limit(20)
+            ->get(['id', 'kode', 'nama']);
+
+        return response()->json([
+            'results' => $data->map(fn($item) => [
+                'id'   => $item->id,
+                'text' => $item->kode . ' - ' . $item->nama,
+            ]),
+        ]);
+    }
+
+    /**
+     * Cari petugas (untuk select2 di form aftap).
+     */
+    public function search_petugas(Request $request)
+    {
+        $q = $request->get('q');
+
+        $data = \App\Models\Petugas::query()
+            ->when($q, fn($query) => $query->where('nama', 'like', "%{$q}%"))
+            ->orderBy('nama')
+            ->limit(20)
+            ->get(['id', 'nama']);
+
+        return response()->json([
+            'results' => $data->map(fn($item) => [
+                'id'   => $item->id,
+                'text' => $item->nama,
+            ]),
         ]);
     }
 
@@ -288,10 +450,11 @@ class AftapController extends Controller
             ]
         ]);
     }
-        public function display_antrian()
-        {
-            return view('app.antrian_aftap');
-        }
+
+    public function display_antrian()
+    {
+        return view('app.antrian_aftap');
+    }
 
     public function display_antrian_data()
     {

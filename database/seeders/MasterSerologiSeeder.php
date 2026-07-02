@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-
 use App\Models\JenisPeriksaSerologi;
 use App\Models\MetodeSerologi;
 use App\Models\ReagenSerologi;
@@ -16,8 +15,6 @@ class MasterSerologiSeeder extends Seeder
      */
     public function run(): void
     {
-      
 
-      
     }
 }

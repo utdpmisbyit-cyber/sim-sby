@@ -50,6 +50,7 @@ return new class extends Migration
             $table->string('status');
             $table->string('user_input');
             $table->string('user_proses');
+            $table->string('bagian_id');
             $table->foreignId('cabang_id')->constrained('cabang')->cascadeOnUpdate()->restrictOnDelete();
             $table->foreignId('petugas_id')->constrained('petugas')->cascadeOnUpdate()->restrictOnDelete();
             $table->foreignId('barang_id')->constrained('barang')->cascadeOnUpdate()->restrictOnDelete();

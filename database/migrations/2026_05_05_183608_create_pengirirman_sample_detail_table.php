@@ -38,6 +38,7 @@ return new class extends Migration
             
             // Kolom ini biasanya ikut header, tapi jika tiap kantong punya suhu sendiri:
             $table->string('suhu')->nullable();
+            $table->string('suhu_sample')->nullable();
             $table->string('id_logger')->nullable();
             $table->string('id_coolbox')->nullable();
 

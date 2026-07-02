@@ -17,6 +17,24 @@ class PermintaanKantongService extends IoService
     }
 
     // =========================
+    // HELPER — hitung status header dari status semua detail
+    // =========================
+    protected function resolveStatus($details)
+    {
+        if ($details->isEmpty()) return 'PENDING';
+
+        $allSelesai = $details->every(fn($d) => strtoupper($d->status ?? '') === 'SELESAI');
+        if ($allSelesai) return 'SELESAI';
+
+        $anyProses = $details->contains(
+            fn($d) => in_array(strtoupper($d->status ?? ''), ['PROSES', 'SELESAI'])
+        );
+        if ($anyProses) return 'PROSES';
+
+        return 'PENDING';
+    }
+
+    // =========================
     // LIST (HISTORY)
     // =========================
     public function list()
@@ -29,7 +47,7 @@ class PermintaanKantongService extends IoService
                     'id'     => $row->id,
                     'kode'   => $row->nomor,
                     'tanggal_minta' => $row->tanggal,
-                    'status' => 'PENDING',
+                    'status' => $this->resolveStatus($row->details),
                     'jumlah' => $row->details->sum('jumlah'),
                     'merk'   => optional($row->details->first())->merk,
                     'jenis'  => optional($row->details->first())->jenis,
@@ -92,42 +110,46 @@ class PermintaanKantongService extends IoService
     // FIND (EDIT)
     // =========================
     public function find($value, $column = 'id')
-{
-    $row = PermintaanKantong::with('details')
-        ->where($column, $value)
-        ->first();
+    {
+        $row = PermintaanKantong::with('details')
+            ->where($column, $value)
+            ->first();
 
-    if (!$row) return null;
+        if (!$row) return null;
 
-    return [
-        'id' => $row->id,
-        'kode' => $row->nomor,
-        'tanggal_minta' => $row->tanggal,
-        'status' => 'PENDING',
-        'items' => $row->details->map(fn($d) => [
-            'merk'   => $d->merk,
-            'jenis'  => $d->jenis,
-            'ukuran' => $d->ukuran,
-            'jumlah' => $d->jumlah,
-        ])->values()
-    ];
-}
-public function show($id)
-{
-    $data = $this->find($id);
-
-    if (!$data) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Data tidak ditemukan'
-        ], 404);
+        return [
+            'id' => $row->id,
+            'kode' => $row->nomor,
+            'tanggal_minta' => $row->tanggal,
+            'status' => $this->resolveStatus($row->details),
+            'items' => $row->details->map(fn($d) => [
+                'id'     => $d->id,
+                'merk'   => $d->merk,
+                'jenis'  => $d->jenis,
+                'ukuran' => $d->ukuran,
+                'jumlah' => $d->jumlah,
+                'jumlah_dilayani' => $d->jumlah_dilayani ?? 0,
+                'status' => $d->status ?? 'PENDING',
+            ])->values()
+        ];
     }
 
-    return response()->json([
-        'success' => true,
-        'data' => $data
-    ]);
-}
+    public function show($id)
+    {
+        $data = $this->find($id);
+
+        if (!$data) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data tidak ditemukan'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $data
+        ]);
+    }
 
     // =========================
     // UPDATE
@@ -136,11 +158,19 @@ public function show($id)
     {
         return DB::transaction(function () use ($id, $payload) {
 
-            $header = PermintaanKantong::find($id);
+            $header = PermintaanKantong::with('details')->find($id);
 
             if (!$header) return false;
 
-           $tanggal = !empty($payload['tanggal_minta'])
+            // ⚠️ Cegah edit kalau sudah ada proses pengeluaran (jumlah_dilayani > 0)
+            // supaya progres yang sudah tercatat di stok_kantong_keluar tidak
+            // "hilang" ketika detail lama dihapus & dibuat ulang.
+            $sudahDiproses = $header->details->contains(fn($d) => ($d->jumlah_dilayani ?? 0) > 0);
+            if ($sudahDiproses) {
+                throw new \Exception('Permintaan ini sudah memiliki proses pengeluaran, tidak bisa diedit lagi.');
+            }
+
+            $tanggal = !empty($payload['tanggal_minta'])
                 ? $payload['tanggal_minta']
                 : now()->toDateString();
 
@@ -154,7 +184,7 @@ public function show($id)
             foreach ($payload['items'] as $item) {
                 PermintaanKantongDetail::create([
                     'permintaan_kantong_id' => $id,
-                    'kode'   => $header->nomor, // 🔥 FIX
+                    'kode'   => $header->nomor,
                     'merk'   => $item['merk'],
                     'jenis'  => $item['jenis'],
                     'ukuran' => $item['ukuran'],

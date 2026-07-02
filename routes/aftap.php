@@ -11,28 +11,37 @@ Route::name('.')->group(function () {
         Route::post('/log_donor/search', [App\Http\Controllers\Aftap\AftapController::class, 'log_donor_search'])->name('log_donor.search');
         Route::get('/log_donor/{id}', [App\Http\Controllers\Aftap\AftapController::class, 'log_donor_show'])->name('log_donor.show');
         Route::post('/log_donor/{id}/panggil', [App\Http\Controllers\Aftap\AftapController::class, 'panggil'])->name('log_donor.panggil');
-
+        Route::post('/log_donor/{id}/tipe_kantong', [App\Http\Controllers\Aftap\AftapController::class, 'update_tipe_kantong'])->name('log_donor.update_tipe_kantong');
+Route::get('/tipe_kantong/search', [App\Http\Controllers\Aftap\AftapController::class, 'search_tipe_kantong'])->name('tipe_kantong.search');
         Route::get('/display-antrian', [App\Http\Controllers\Aftap\AftapController::class, 'display_antrian'])->name('display_antrian');
         Route::get('/display-antrian/data', [App\Http\Controllers\Aftap\AftapController::class, 'display_antrian_data'])->name('display_antrian_data');
-
+        Route::get('/asal_darah/search', [App\Http\Controllers\Aftap\AftapController::class, 'search_asal_darah'])->name('asal_darah.search');
+        Route::post('/log_donor/{id}/asal_darah', [App\Http\Controllers\Aftap\AftapController::class, 'update_asal_darah'])->name('log_donor.update_asal_darah');
+        Route::get('/petugas/search', [App\Http\Controllers\Aftap\AftapController::class, 'search_petugas'])->name('petugas.search');
+        Route::post('/log_donor/scan', [App\Http\Controllers\Aftap\AftapController::class, 'log_donor_scan'])->name('log_donor.scan');
         Route::post('/scan_kantong', [App\Http\Controllers\Aftap\AftapController::class, 'scan_kantong'])->name('scan_kantong');
         Route::get('/{id}', [App\Http\Controllers\Aftap\AftapController::class, 'edit'])->name('edit');
         Route::put('/{id}', [App\Http\Controllers\Aftap\AftapController::class, 'update'])->name('update');
     });
 
     Route::prefix('penerimaan_kantong')->name('penerimaan.')->group(function () {
-    
-        Route::get('/',    [App\Http\Controllers\Aftap\PenerimaanKantongController::class, 'index'])->name('index');
-    
-        Route::get ('search-no-keluar',         [App\Http\Controllers\Aftap\PenerimaanKantongController::class, 'searchNoKeluar'])      ->name('search_no_keluar');
-        Route::get ('search-no-permintaan',     [App\Http\Controllers\Aftap\PenerimaanKantongController::class, 'searchNoPermintaan'])  ->name('search_no_permintaan');
-        Route::post('kantong-by-no-keluar',     [App\Http\Controllers\Aftap\PenerimaanKantongController::class, 'kantongByNoKeluar'])   ->name('kantong_by_no_keluar');
-        Route::post('kantong-by-no-permintaan', [App\Http\Controllers\Aftap\PenerimaanKantongController::class, 'kantongByNoPermintaan'])->name('kantong_by_no_permintaan');
-    
-        Route::post('/scan',         [App\Http\Controllers\Aftap\PenerimaanKantongController::class, 'scan'])->name('scan');
-        Route::post('/jumlah-kirim', [App\Http\Controllers\Aftap\PenerimaanKantongController::class, 'getJumlah'])->name('get_jumlah');
-        Route::post('/store',        [App\Http\Controllers\Aftap\PenerimaanKantongController::class, 'store'])->name('store');
-    });
+    Route::get('/', [App\Http\Controllers\Aftap\PenerimaanKantongController::class, 'index'])->name('index');
+    Route::post('store', [App\Http\Controllers\Aftap\PenerimaanKantongController::class, 'store'])->name('store');
+    Route::post('scan', [App\Http\Controllers\Aftap\PenerimaanKantongController::class, 'scan'])->name('scan');
+    Route::get('next-no-transaksi', [App\Http\Controllers\Aftap\PenerimaanKantongController::class, 'nextNoTransaksi'])->name('next_no_transaksi');
+    Route::get('search-no-keluar', [App\Http\Controllers\Aftap\PenerimaanKantongController::class, 'searchNoKeluar'])->name('search_no_keluar');
+    Route::get('search-no-permintaan', [App\Http\Controllers\Aftap\PenerimaanKantongController::class, 'searchNoPermintaan'])->name('search_no_permintaan');
+ 
+    Route::post('kantong-by-no-keluar', [App\Http\Controllers\Aftap\PenerimaanKantongController::class, 'kantongByNoKeluar'])->name('kantong_by_no_keluar');
+    Route::post('kantong-by-no-permintaan', [App\Http\Controllers\Aftap\PenerimaanKantongController::class, 'kantongByNoPermintaan'])->name('kantong_by_no_permintaan');
+    Route::post('get-jumlah', [App\Http\Controllers\Aftap\PenerimaanKantongController::class, 'getJumlah'])->name('get_jumlah');
+ 
+    Route::get('{id}/edit', [App\Http\Controllers\Aftap\PenerimaanKantongController::class, 'edit'])->name('edit');
+ 
+    Route::put('{id}', [App\Http\Controllers\Aftap\PenerimaanKantongController::class, 'update'])->name('update');
+    Route::delete('{id}', [App\Http\Controllers\Aftap\PenerimaanKantongController::class, 'destroy'])->name('destroy');
+ 
+});
      Route::prefix('pengembalian_kantong')->name('pengembalian_kantong.')->group(function () {
  
         Route::get('/',   [App\Http\Controllers\Aftap\PengembalianKantongController::class, 'index'])      ->name('index');
@@ -57,6 +66,7 @@ Route::name('.')->group(function () {
         Route::post('/detail/{detail}/tolak', [App\Http\Controllers\Aftap\PengirimanSampleController::class, 'toggleTolak'])->name('detail.tolak');
 
     });
+    
     Route::prefix('pengeluaran_mobile_unit')->name('pengeluaran_mobile_unit.')->group(function () {
 
             Route::get('/',   [App\Http\Controllers\Aftap\PengeluaranKantongMobileUnitController::class,'index'])->name('index');

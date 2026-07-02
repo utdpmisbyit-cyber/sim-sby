@@ -44,7 +44,7 @@
 @push('scripts')
     <script>
         let $form_search = $('#form_search'), $table = $('#table'), $modal_info = $('#modal_info'), $modal_info_item = $('#modal_info_item');
-        let selected_page = 1, _token = '{{ csrf_token() }}', base_url = '{{ route('unit.donor.index') }}', params_url = '{{ $params ?? '' }}';
+        let selected_page = 1, _token = '{{ csrf_token() }}', base_url = '{{ route('mobil_unit.donor.index') }}', params_url = '{{ $params ?? '' }}';
 
         let init = () => { $modal_info_item.html(''); try { $modal_info.modal('hide'); } catch (e) { } search_data(selected_page); }
         let search_data = (page = 1) => {

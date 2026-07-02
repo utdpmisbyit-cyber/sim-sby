@@ -225,6 +225,23 @@
 .ps-badge--green { background: rgba(34,197,94,.12);  color: #16A34A;     border-color: rgba(34,197,94,.25); }
 .ps-badge--amber { background: rgba(245,158,11,.12); color: #B45309;     border-color: rgba(245,158,11,.25); }
 
+/* Suhu sample per baris (editable) */
+.ps-suhu-input {
+    width: 74px;
+    height: 30px;
+    border: 1px solid var(--line-2);
+    border-radius: var(--r-sm);
+    padding: 0 8px;
+    font-size: .78rem;
+    font-family: var(--mono);
+    color: var(--text-1);
+    outline: none;
+    background: #fff;
+    transition: border-color .14s, box-shadow .14s;
+}
+.ps-suhu-input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(59,130,246,.14); }
+.ps-suhu-input.ps-suhu-warn { border-color: rgba(239,68,68,.5); background: rgba(239,68,68,.06); color: var(--red); }
+
 /* ── BUTTONS ── */
 .ps-btn-del {
     width: 30px; height: 30px; border-radius: var(--r-sm);
@@ -450,14 +467,14 @@
                 </div>
 
                 <div class="ps-field">
-                    <label><i class="fas fa-thermometer-half"></i> Suhu</label>
+                    <label><i class="fas fa-thermometer-half"></i> Suhu Coolbox</label>
                     <div class="ps-input-wrap">
                         <input type="text" id="ps_suhu" placeholder="Contoh: 2-6°C">
                     </div>
                 </div>
             </div>
 
-            {{-- Baris 2: logger, no selang, petugas, nat --}}
+            {{-- Baris 2: logger, no selang, suhu sample default, petugas, nat --}}
             <div class="ps-form-grid" style="margin-bottom:20px">
                 <div class="ps-field">
                     <label><i class="fas fa-microchip"></i> ID Logger</label>
@@ -471,6 +488,14 @@
                     <div class="ps-input-wrap">
                         {{-- Terisi otomatis dari data scan pertama --}}
                         <input type="text" id="ps_no_selang" placeholder="Terisi otomatis saat scan...">
+                    </div>
+                </div>
+
+                {{-- ── BARU: Suhu Sample (default) ── --}}
+                <div class="ps-field">
+                    <label><i class="fas fa-temperature-low"></i> Suhu Sample (Default)</label>
+                    <div class="ps-input-wrap">
+                        <input type="text" id="ps_suhu_sample_default" placeholder="Contoh: 4.5°C">
                     </div>
                 </div>
 
@@ -514,6 +539,11 @@
                     autofocus
                 >
             </div>
+            <div style="font-size:.72rem;color:var(--text-3);margin-top:6px">
+                <i class="fas fa-info-circle"></i>
+                Nilai <b>Suhu Sample (Default)</b> di atas otomatis dipakai untuk setiap kantong yang di-scan —
+                bisa diubah lagi per baris di tabel bila suhu tiap sample berbeda.
+            </div>
 
         </div>
     </div>
@@ -543,6 +573,7 @@
                             <th style="width:38px">#</th>
                             <th>No Kantong</th>
                             <th>No Selang</th>{{-- ← kolom no_selang --}}
+                            <th>Suhu Sample</th>{{-- ── BARU ── --}}
                             <th>Jenis</th>
                             <th>No Donor</th>
                             <th>Nama Donor</th>
@@ -555,7 +586,7 @@
                     </thead>
                     <tbody id="ps_tbody">
                         <tr class="ps-no-data" id="ps_empty">
-                            <td colspan="11">
+                            <td colspan="12">
                                 <i class="fas fa-inbox"></i>
                                 Belum ada kantong yang di-scan
                             </td>
@@ -690,6 +721,7 @@
                             <th style="width:36px">#</th>
                             <th>No Kantong</th>
                             <th>No Selang</th>
+                            <th>Suhu Sample</th>{{-- ── BARU ── --}}
                             <th>Jenis</th>
                             <th>No Donor</th>
                             <th>Nama Donor</th>
@@ -700,7 +732,7 @@
                     </thead>
                     <tbody id="ps_modal_tbody">
                         <tr class="ps-no-data">
-                            <td colspan="9"><i class="fas fa-spinner ps-spin"></i></td>
+                            <td colspan="10"><i class="fas fa-spinner ps-spin"></i></td>
                         </tr>
                     </tbody>
                 </table>
@@ -832,6 +864,13 @@ function psRender() {
                 <td>
                     <span class="ps-mono" style="color:var(--text-2)">${it.no_selang ?? '–'}</span>
                 </td>
+                <td>
+                    <input type="text" class="ps-suhu-input"
+                        value="${it.suhu_sample ?? ''}"
+                        placeholder="–°C"
+                        title="Suhu sample kantong ini"
+                        oninput="psUpdateSuhuSample(${i}, this.value)">
+                </td>
                 <td><span class="ps-badge">${it.jenis_kantong ?? '–'}</span></td>
                 <td><span class="ps-mono">${it.no_donor ?? '–'}</span></td>
                 <td style="font-weight:600;color:var(--text-1)">${it.nama_donor ?? '–'}</td>
@@ -861,6 +900,16 @@ function psRender() {
     document.getElementById('ps_total').textContent          = items.length;
     document.getElementById('ps_total_tolak').textContent    = ditolak;
     document.getElementById('ps_tab_scan_badge').textContent = items.length;
+}
+
+/* ══════════════════════════════════════
+   UPDATE SUHU SAMPLE (per baris, tanpa render ulang
+   supaya fokus input tidak hilang)
+══════════════════════════════════════ */
+function psUpdateSuhuSample(idx, val) {
+    if (!items[idx]) return;
+    items[idx].suhu_sample = val;
+    psResetSavedState();
 }
 
 /* ══════════════════════════════════════
@@ -894,8 +943,9 @@ async function psDoScan(no_kantong) {
         return;
     }
 
-    const isNat  = document.getElementById('ps_is_nat').checked;
-    const scanEl = document.getElementById('ps_scan');
+    const isNat       = document.getElementById('ps_is_nat').checked;
+    const suhuDefault = document.getElementById('ps_suhu_sample_default').value;
+    const scanEl       = document.getElementById('ps_scan');
     scanEl.disabled    = true;
     scanEl.placeholder = 'Memproses...';
 
@@ -919,8 +969,9 @@ async function psDoScan(no_kantong) {
 
         items.unshift({
             ...json.data,
-            is_nat : isNat,
-            tolak  : false,
+            is_nat      : isNat,
+            tolak       : false,
+            suhu_sample : suhuDefault || null,   // ── Suhu khusus sample/kantong ini ──
         });
 
         psRender();
@@ -978,7 +1029,7 @@ async function psSimpan() {
                 id_coolbox       : no_selang,
                 petugas_pemeriksa,
                 is_nat, keterangan,
-                items,
+                items,   // setiap item sudah membawa field `suhu` (suhu sample per kantong)
             }),
         });
         const json = await res.json();
@@ -1095,6 +1146,7 @@ function psCetak() {
               
             </span></td>
             <td style="text-align:center">${it.id_logger ?? idLogger}</td>
+            <td style="text-align:center;font-weight:600">${it.suhu_sample ?? it.suhu ?? suhu ?? '–'}</td>
             <td style="text-align:center">${tgl}</td>
         </tr>`;
     }).join('');
@@ -1325,11 +1377,12 @@ function psCetak() {
         <th>NoFPUP</th>
         <th>Keterangan</th>
         <th>ID</th>
+        <th>Suhu</th>
         <th>Durasi</th>
       </tr>
     </thead>
     <tbody>
-      ${rowsHtml || '<tr><td colspan="17" style="text-align:center;padding:8px;color:#999">Tidak ada data</td></tr>'}
+      ${rowsHtml || '<tr><td colspan="18" style="text-align:center;padding:8px;color:#999">Tidak ada data</td></tr>'}
     </tbody>
   </table>
 
@@ -1364,7 +1417,7 @@ function psCetak() {
   </div>
 
   <div style="font-size:8.5px;margin-top:6px;line-height:2">
-    Suhu: ${suhu} &nbsp;&deg;C<br>
+    Suhu Coolbox: ${suhu} &nbsp;&deg;C<br>
     ID Logger :${idLogger}
   </div>
 
@@ -1426,7 +1479,7 @@ function psResetForm() {
     psResetSavedState();
     psRender();
 
-    ['ps_suhu','ps_id_logger','ps_no_selang','ps_keterangan']
+    ['ps_suhu','ps_id_logger','ps_no_selang','ps_suhu_sample_default','ps_keterangan']
         .forEach(id => {
             const el = document.getElementById(id);
             if (el) el.value = '';
@@ -1563,7 +1616,7 @@ async function psShowDetail(id, noFpd, tgl) {
     document.getElementById('ps_modal_title').textContent = `Detail – ${noFpd}`;
     document.getElementById('ps_modal_sub').textContent   = `Tanggal: ${tgl}`;
     document.getElementById('ps_modal_tbody').innerHTML   =
-        `<tr class="ps-no-data"><td colspan="9">
+        `<tr class="ps-no-data"><td colspan="10">
             <i class="fas fa-spinner ps-spin"></i>
         </td></tr>`;
     document.getElementById('ps_modal').classList.add('show');
@@ -1577,7 +1630,7 @@ async function psShowDetail(id, noFpd, tgl) {
         const tbody = document.getElementById('ps_modal_tbody');
 
         if (rows.length === 0) {
-            tbody.innerHTML = `<tr class="ps-no-data"><td colspan="9">
+            tbody.innerHTML = `<tr class="ps-no-data"><td colspan="10">
                 <i class="fas fa-inbox"></i> Tidak ada detail
             </td></tr>`;
             return;
@@ -1599,6 +1652,9 @@ async function psShowDetail(id, noFpd, tgl) {
                 <td>
                     <span class="ps-mono" style="color:var(--text-2)">${d.id_coolbox ?? '–'}</span>
                 </td>
+                <td style="text-align:center">
+                    <span class="ps-mono">${d.suhu_sample ?? d.suhu ?? '–'}</span>
+                </td>
                 <td><span class="ps-badge">${d.jenis_kantong ?? '–'}</span></td>
                 <td><span class="ps-mono">${d.no_donor ?? '–'}</span></td>
                 <td style="font-weight:600;color:var(--text-1)">${d.nama_donor ?? '–'}</td>
@@ -1618,7 +1674,7 @@ async function psShowDetail(id, noFpd, tgl) {
 
     } catch(e) {
         document.getElementById('ps_modal_tbody').innerHTML =
-            `<tr class="ps-no-data"><td colspan="9">Gagal memuat detail</td></tr>`;
+            `<tr class="ps-no-data"><td colspan="10">Gagal memuat detail</td></tr>`;
     }
 }
 

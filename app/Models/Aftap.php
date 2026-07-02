@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Aftap extends Model
 {
     const STATUS = ['Pending', 'Ongoing', 'Approved', 'Rejected', 'Cancelled'];
-    const CARA_AMBIL = ['Konvensional'];
+    const CARA_AMBIL = ['Konvensional',];
     const JENIS_DONOR = ['Sukarela', 'Pengganti'];
     const REAKSI_DONOR = ['Normal', 'Muntah', 'Pingsan', 'Pusing', 'Lain-lain'];
 
@@ -15,11 +15,11 @@ class Aftap extends Model
     protected $table = 'aftap';
 
     protected $fillable = [
-        'kode','bed','log_donor_id', 'dokter_id', 'donor_id', 'asal_darah_id', 'status',
+        'kode','bed','log_donor_id', 'dokter_id','petugas_aftap_id', 'donor_id', 'asal_darah_id', 'status',
         'alamat_surat', 'bersedia_dikirim_surat', 'cara_ambil', 'cuci_tangan','lengan',
         'darah_lancar', 'donor_sewaktu_waktu', 'id_hemoscale', 'jam_mulai',
         'jam_selesai', 'jenis_donor', 'kantong_penuh', 'keterangan', 'lain_lain',
-        'cc_ambil','satelit','durasi',
+        'cc_ambil','satelit','durasi','donor_sewaktu_puasa',
         'no_kantong', 'no_selang', 'penusukan_sulit', 'reaksi_donor', 'sample_darah', 'catatan',
     ];
 
@@ -54,5 +54,9 @@ class Aftap extends Model
     public function asalDarah()
     {
         return $this->belongsTo(AsalDarah::class);
+    }
+    public function petugasAftap()
+    {
+        return $this->belongsTo(Petugas::class, 'petugas_aftap_id');
     }
 }

@@ -42,7 +42,7 @@ Route::middleware('auth')->group(function () {
         }
     });
     Route::get('/purchase_order/{id}/show_json', [App\Http\Controllers\Inventory\QcBarangMasukController::class, 'show_json'])->name('purchase_order.show_json');
-    Route::post('/pengajuan_barang/{id}/proses', [App\Http\Controllers\Inventory\PermintaanController::class, 'proses'])->name('pengajuan_barang.proses');
+    // Route::post('/pengajuan_barang/{id}/proses', [App\Http\Controllers\Inventory\PermintaanController::class, 'proses'])->name('pengajuan_barang.proses');
     Route::prefix('laporan')->name('laporan.')->group(function () {
         Route::get('pengeluaran_barang', [App\Http\Controllers\Inventory\PengeluaranBarangController::class, 'laporan'])->name('pengeluaran_barang');
     });

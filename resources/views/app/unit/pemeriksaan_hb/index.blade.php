@@ -125,7 +125,6 @@
         ).fail((xhr) => $table_log_donor.html(xhr.responseText));
     }
 
-    // ✅ FIX: select_log menampilkan info di panel kanan, TANPA menyembunyikan tabel
 let select_log = (id) => {
 
     // update step jadi HB
@@ -141,7 +140,7 @@ let select_log = (id) => {
             .data('pemeriksaan-id');
 
         if (pemeriksaanId) {
-            info(pemeriksaanId); // ✅ LOAD FORM HB
+            info(pemeriksaanId); 
         } else {
             // $info.html(`
             //     <div class="alert alert-warning">
@@ -157,7 +156,7 @@ let select_log = (id) => {
     $card_search.hide();
 
     $.get(base_url + '/' + id, (res) => {
-        $info.html(res); // ✅ FORM HB MASUK SINI
+        $info.html(res); 
     });
 }
 
@@ -185,16 +184,15 @@ let select_log = (id) => {
         ).fail((xhr) => $table.html(xhr.responseText));
     }
 
-    // ✅ FIX: call_donor terima 5 argumen (tambah noRuangan)
+    
     let pemeriksaan_id = '', log_donor_id_call = '';
- // ✅ call_donor - tambah kodeLog & tanggal
+
 let call_donor = (pemHbId, logDonorId, nama, kodeAftap, noRuangan, noAntrian) => {
     if (!logDonorId) {
         Swal.fire({ icon: 'warning', title: 'Data tidak lengkap' });
         return;
     }
 
-    // ✅ speak pakai noAntrian angka, bukan kodeAftap
     speak_antrian(nama, noAntrian, 'meja pemeriksaan HB');
 
     $.post(base_url + '/log_donor/' + logDonorId + '/panggil', { _token }, () => {
@@ -333,7 +331,7 @@ let do_print_antrian = (nama, nomorCetak, lengan, kodeLog, tanggal) => {
         let nomorBersih  = noHp.replace(/^0/, '62').replace(/\D/g, '');
         window.open(`https://wa.me/${nomorBersih}?text=${pesanEncoded}`, '_blank');
     };
-    // ✅ FIX: assign_ruangan — setelah assign, refresh tabel
+  
     let assign_ruangan = (logDonorId, nomor) => {
         $.post(base_url + '/log_donor/' + logDonorId + '/assign_ruangan',
             { _token, nomor_ruangan: nomor },

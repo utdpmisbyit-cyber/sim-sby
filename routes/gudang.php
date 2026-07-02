@@ -38,12 +38,16 @@ Route::name('.')->group(function () {
         Route::get('/data',    [App\Http\Controllers\Gudang\RiwayatBarcodeController::class, 'data'])->name('data');
         Route::get('/summary', [App\Http\Controllers\Gudang\RiwayatBarcodeController::class, 'summary'])->name('summary');
         });
-    
+      Route::get('permintaan_barang_logistik/get-pengajuan/{id}', [App\Http\Controllers\Gudang\PermintaanBarangLogistikController::class, 'getPengajuan'])->name('permintaan_barang_logistik.get_pengajuan');
+    Route::get('permintaan_barang_logistik/find-pengajuan', [App\Http\Controllers\Gudang\PermintaanBarangLogistikController::class, 'findPengajuan'])->name('permintaan_barang_logistik.find_pengajuan');
+
+
     ioRouteResource('pendataan_kantong',   App\Http\Controllers\Gudang\PendataanKantongController::class);
     ioRouteResource('stok_kantong',        App\Http\Controllers\Gudang\StokKantongController::class);
     ioRouteResource('pengeluaran_kantong', App\Http\Controllers\Gudang\PengeluaranKantongController::class);
     ioRouteResource('konfirmasi_permintaan', App\Http\Controllers\Gudang\KonfirmasiPermintaanController::class);
-    ioRouteResource('pengajuan_barang', App\Http\Controllers\Gudang\PermintaanController::class);
+    // ioRouteResource('pengajuan_barang', App\Http\Controllers\Gudang\PermintaanController::class);
     ioRouteResource('permintaan_cetak_ulang', App\Http\Controllers\Gudang\PermintaanCetakUlangController::class);
-
+    ioRouteResource('permintaan_barang_logistik', App\Http\Controllers\Gudang\PermintaanBarangLogistikController::class);
+    
 });

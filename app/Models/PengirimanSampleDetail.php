@@ -31,6 +31,7 @@ class PengirimanSampleDetail extends Model
         'perkiraan',
         'jenis_donor',
         'suhu',
+        'suhu_sample', 
         'id_logger',
         'id_coolbox',
     ];

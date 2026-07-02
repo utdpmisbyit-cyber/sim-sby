@@ -30,6 +30,7 @@ class PendaftaranController extends Controller
         $date = date('Y-m-d');
        $paramsLogDonor = [
             'date' => $date,
+            'jenis_donor' => 'udd pmi sby',
             'with' => ['donor', 'petugasRegistrasi']
         ];
 
@@ -89,6 +90,8 @@ class PendaftaranController extends Controller
             'donor_id'              => $donor->id,
             'petugas_registrasi_id' => auth()->user()->petugas->id ?? null,
             'step'                  => 'Registrasi',
+            'jenis_donor'           => 'udd pmi sby',
+
         ]);
         $totalDonor = $this->logDonorService->countByDonor($donor->id);
         $donor->update([

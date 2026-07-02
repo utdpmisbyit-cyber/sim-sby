@@ -5,8 +5,8 @@ use Illuminate\Support\Facades\Route;
 Route::view('/','app.inventory.index');
 Route::name('.')->group(function () {
 
-    Route::get('permintaan_barang_logistik/get-pengajuan/{id}', [App\Http\Controllers\Gudang\PermintaanBarangLogistikController::class, 'getPengajuan'])->name('permintaan_barang_logistik.get_pengajuan');
-    Route::get('permintaan_barang_logistik/find-pengajuan', [App\Http\Controllers\Gudang\PermintaanBarangLogistikController::class, 'findPengajuan'])->name('permintaan_barang_logistik.find_pengajuan');
+    Route::get('permintaan_barang_logistik/get-pengajuan/{id}', [App\Http\Controllers\Inventory\PermintaanBarangLogistikController::class, 'getPengajuan'])->name('permintaan_barang_logistik.get_pengajuan');
+    Route::get('permintaan_barang_logistik/find-pengajuan', [App\Http\Controllers\Inventory\PermintaanBarangLogistikController::class, 'findPengajuan'])->name('permintaan_barang_logistik.find_pengajuan');
 
     ioRouteResource('barang', App\Http\Controllers\Inventory\BarangController::class);
     ioRouteResource('kelompok_barang', App\Http\Controllers\Inventory\KelompokBarangController::class);

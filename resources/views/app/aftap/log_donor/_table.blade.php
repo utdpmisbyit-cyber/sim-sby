@@ -1,7 +1,7 @@
 <div class="card card-flush rounded-4 border-0 shadow-xs mb-6">
     <div class="card-header pt-6">
         <div class="card-title">
-            <h3 class="fw-bold fs-4 text-dark mb-0">Antrian Pendaftaran</h3>
+            <h3 class="fw-bold fs-4 text-dark mb-0">Work List Aftap</h3>
         </div>
     </div>
     <div class="card-body pt-0">

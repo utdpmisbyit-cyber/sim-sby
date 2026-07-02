@@ -315,5 +315,4 @@ class MigrasiSeeder extends Seeder
             );
         }
     }
-
 }

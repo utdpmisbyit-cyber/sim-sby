@@ -26,7 +26,7 @@ class PemeriksaanHbController extends Controller
         view()->share('metode_options', $this->pemeriksaanHbService->metode);
         $list_status = ['Approved' => 'Terima', 'Rejected' => 'Tolak'];
         view()->share('list_status', $list_status);
-        view()->share('list_alasan', ['HB Rendah', 'HB Tinggi', 'Berat Badan Kurang']);
+        view()->share('list_alasan', ['HB Rendah', 'HB Tinggi']);
 
         $petugasService = new PetugasService();
         view()->share('dokter_options', $petugasService->search(['nama_jabatan' => 'Dokter']));
@@ -116,6 +116,7 @@ class PemeriksaanHbController extends Controller
                     'log_donor_id' => $log_donor->id,
                     'donor_id'     => $log_donor->donor_id,
                     'dokter_id'    => $petugas?->id,
+                    'petugas_aftap_id'  => $petugas?->id,
                     'status'       => 'Pending',
                 ]);
             }

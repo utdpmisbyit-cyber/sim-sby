@@ -76,8 +76,8 @@ class PengeluaranKantongController extends IoResourceController
             )
             ->get()
             ->map(function ($row) {
-                $row->status           = $row->status           ?? 'PENDING';
-                $row->jumlah_dilayani  = $row->jumlah_dilayani  ?? 0;
+                $row->status          = $row->status          ?? 'PENDING';
+                $row->jumlah_dilayani = $row->jumlah_dilayani  ?? 0;
                 return $row;
             });
 
@@ -160,15 +160,12 @@ class PengeluaranKantongController extends IoResourceController
 
             if (!$detail) throw new \Exception('Detail permintaan tidak ditemukan');
 
-            $sudahDilayani = $detail->jumlah_dilayani ?? 0;
-            $jumlahMinta   = $detail->jumlah          ?? 0;
-            $totalScan     = count($data['no_kantong']);
-
-            if (($sudahDilayani + $totalScan) > $jumlahMinta) {
-                throw new \Exception('Jumlah melebihi permintaan. Sisa: ' . ($jumlahMinta - $sudahDilayani));
-            }
-
-            // MODE EDIT — rollback kantong lama
+            // ──────────────────────────────────────────────
+            // MODE EDIT — rollback kantong lama DULU,
+            // sebelum $sudahDilayani dihitung, supaya
+            // jumlah_dilayani yang dipakai untuk validasi &
+            // update status selalu akurat.
+            // ──────────────────────────────────────────────
             if (!empty($data['id'])) {
                 $old = DB::table('stok_kantong_keluar')->where('id', $data['id'])->first();
                 if (!$old) throw new \Exception('Data edit tidak ditemukan');
@@ -184,6 +181,23 @@ class PengeluaranKantongController extends IoResourceController
                 }
 
                 DB::table('stok_kantong_keluar')->where('id', $data['id'])->delete();
+
+                // Re-fetch detail supaya jumlah_dilayani sudah sinkron
+                // dengan decrement di atas (fix bug status tidak akurat)
+                $detail = DB::table('permintaan_kantong_detail')
+                    ->where('id', $data['detail_id'])
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$detail) throw new \Exception('Detail permintaan tidak ditemukan setelah rollback edit');
+            }
+
+            $sudahDilayani = $detail->jumlah_dilayani ?? 0;
+            $jumlahMinta   = $detail->jumlah          ?? 0;
+            $totalScan     = count($data['no_kantong']);
+
+            if (($sudahDilayani + $totalScan) > $jumlahMinta) {
+                throw new \Exception('Jumlah melebihi permintaan. Sisa: ' . ($jumlahMinta - $sudahDilayani));
             }
 
             // INSERT setiap kantong
@@ -235,7 +249,8 @@ class PengeluaranKantongController extends IoResourceController
                     'updated_at'      => now(),
                 ]);
 
-            // Sinkron status header
+            // Sinkron status header (no-op otomatis kalau kolom 'status'
+            // belum ada di tabel permintaan_kantong — lihat migration terpisah)
             $this->syncHeaderStatus($permintaan->id);
 
             DB::commit();
