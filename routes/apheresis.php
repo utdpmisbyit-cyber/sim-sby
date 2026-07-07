@@ -36,7 +36,11 @@ Route::name('.')->group(function () {
         Route::get('/', [App\Http\Controllers\Apheresis\PemeriksaanKesehatanController::class, 'index'])->name('index');
         Route::get('/display-antrian', [App\Http\Controllers\LauncherController::class, 'antrian_dokter'])->name('display_antrian');
         Route::get('/display-antrian/data', [App\Http\Controllers\LauncherController::class, 'display_antrian_data']);
-    
+        Route::get('/antrian-apheresis', [App\Http\Controllers\LauncherController::class, 'antrian_apheresis'])
+            ->name('antrian_apheresis');
+        
+        Route::get('/antrian-apheresis/data', [App\Http\Controllers\LauncherController::class, 'display_antrian_apheresis_data'])
+            ->name('antrian_apheresis.data');
         Route::post('/search', [App\Http\Controllers\Apheresis\PemeriksaanKesehatanController::class, 'search'])->name('search');
         Route::get('/{id}', [App\Http\Controllers\Apheresis\PemeriksaanKesehatanController::class, 'edit'])->name('edit');
         Route::put('/{id}', [App\Http\Controllers\Apheresis\PemeriksaanKesehatanController::class, 'update'])->name('update');
@@ -55,7 +59,7 @@ Route::name('.')->group(function () {
         
         Route::get('/display-antrian',       [App\Http\Controllers\LauncherController::class, 'antrian_dokter'])->name('display_antrian');
         Route::get('/display-antrian/data',  [App\Http\Controllers\LauncherController::class, 'display_antrian_data'])->name('display_antrian_data');
-        
+
         Route::post('/log_donor/search', [App\Http\Controllers\Apheresis\PemeriksaanHbController::class, 'log_donor_search'])->name('log_donor.search');
         Route::get('/log_donor/{id}', [App\Http\Controllers\Apheresis\PemeriksaanHbController::class, 'log_donor_show'])->name('log_donor.show');
         Route::post('/log_donor/{id}/panggil', [App\Http\Controllers\Apheresis\PemeriksaanHbController::class, 'panggil'])->name('log_donor.panggil');
@@ -66,6 +70,36 @@ Route::name('.')->group(function () {
     
    
     });
+    Route::prefix('sampling_pra_donor')->name('sampling_pra_donor.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Apheresis\SamplingPraDonorController::class, 'index'])->name('index');
+        Route::post('/search', [App\Http\Controllers\Apheresis\SamplingPraDonorController::class, 'search'])->name('search');
+ 
+        Route::get('/create', [App\Http\Controllers\Apheresis\SamplingPraDonorController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Apheresis\SamplingPraDonorController::class, 'store'])->name('store');
+ 
+        Route::get('/generate_kode', [App\Http\Controllers\Apheresis\SamplingPraDonorController::class, 'generateKode'])->name('generate_kode');
+        Route::post('/search_donor', [App\Http\Controllers\Apheresis\SamplingPraDonorController::class, 'searchDonor'])->name('search_donor');
+ 
+        Route::get('/{id}', [App\Http\Controllers\Apheresis\SamplingPraDonorController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [App\Http\Controllers\Apheresis\SamplingPraDonorController::class, 'update'])->name('update');
+        Route::delete('/{id}', [App\Http\Controllers\Apheresis\SamplingPraDonorController::class, 'destroy'])->name('destroy');
+    });
+    Route::prefix('pengambilan_darah')->name('pengambilan_darah.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Apheresis\PengambilanDarahApheresisController::class, 'index'])->name('index');
+        Route::post('/search', [App\Http\Controllers\Apheresis\PengambilanDarahApheresisController::class, 'search'])->name('search');
+    
+        Route::get('/create', [App\Http\Controllers\Apheresis\PengambilanDarahApheresisController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Apheresis\PengambilanDarahApheresisController::class, 'store'])->name('store');
+    
+        Route::get('/generate_kode', [App\Http\Controllers\Apheresis\PengambilanDarahApheresisController::class, 'generateKode'])->name('generate_kode');
+        Route::post('/search_donor', [App\Http\Controllers\Apheresis\PengambilanDarahApheresisController::class, 'searchDonor'])->name('search_donor');
+        Route::post('/search_sampling', [App\Http\Controllers\Apheresis\PengambilanDarahApheresisController::class, 'searchSampling'])->name('search_sampling');
+        Route::get('/search_petugas', [App\Http\Controllers\Apheresis\PengambilanDarahApheresisController::class, 'searchPetugas'])->name('search_petugas');
+        Route::get('/{id}', [App\Http\Controllers\Apheresis\PengambilanDarahApheresisController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [App\Http\Controllers\Apheresis\PengambilanDarahApheresisController::class, 'update'])->name('update');
+        Route::delete('/{id}', [App\Http\Controllers\Apheresis\PengambilanDarahApheresisController::class, 'destroy'])->name('destroy');
+    });
+
 
     ioRouteResource('donor', App\Http\Controllers\Apheresis\DonorController::class);
 

@@ -16,6 +16,10 @@ use Carbon\Carbon;
 
 class DonorController extends IoResourceController
 {
+    // ★ Batas usia layak donor (konsisten dengan frontend)
+    const USIA_MIN = 17;
+    const USIA_MAX = 65;
+
     public function __construct()
     {
         $this->service = new DonorService();
@@ -45,6 +49,13 @@ class DonorController extends IoResourceController
     {
         $dataRequest = new DonorSaveRequest();
         $request->validate($dataRequest->rules(), $dataRequest->messages());
+
+        // ★ Cek batas umur 17-65, bisa di-bypass dengan force_umur=1
+        $cekUmur = $this->cekBatasUmur($request);
+        if ($cekUmur !== null) {
+            return $cekUmur;
+        }
+
         return parent::store($request);
     }
 
@@ -52,8 +63,16 @@ class DonorController extends IoResourceController
     {
         $dataRequest = new DonorSaveRequest();
         $request->validate($dataRequest->rules(), $dataRequest->messages());
+
+        // ★ Cek batas umur 17-65, bisa di-bypass dengan force_umur=1
+        $cekUmur = $this->cekBatasUmur($request);
+        if ($cekUmur !== null) {
+            return $cekUmur;
+        }
+
         return parent::update($request, $id);
     }
+
     public function checkFpup(Request $request)
     {
         $request->validate([
@@ -113,90 +132,127 @@ class DonorController extends IoResourceController
             ]
         ]);
     }
+
+    public function show($id)
+    {
+        $donor = $this->service->find($id);
+
+        if (!$donor) {
+            return response()->json(['error' => 'Donor tidak ditemukan'], 404);
+        }
+
+        $donor->umur = $donor->tanggal_lahir
+            ? \Carbon\Carbon::parse($donor->tanggal_lahir)->age
+            : null;
+
+        $donor->sudah_daftar_hari_ini = \App\Models\LogDonor::where('donor_id', $donor->id)
+            ->whereDate('created_at', now()->toDateString())
+            ->exists();
+
+        return response()->json($donor);
+    }
+
     // ─── SELECT2 AJAX ────────────────────────────────────────────────────────────
 
-public function select2Wilayah(Request $request)
-{
-    $q = $request->get('q', '');
-    $items = \App\Models\Wilayah::query()
-        ->when($q, fn($m) => $m->where('nama', 'like', "%$q%"))
-        ->orderBy('nama')->limit(20)->get(['id', 'kode', 'nama']); // sesuaikan nama kolom kode
+    public function select2Wilayah(Request $request)
+    {
+        $q = $request->get('q', '');
+        $items = \App\Models\Wilayah::query()
+            ->when($q, fn($m) => $m->where('nama', 'like', "%$q%"))
+            ->orderBy('nama')->limit(20)->get(['id', 'kode', 'nama']); // sesuaikan nama kolom kode
 
-    return response()->json([
-        'results' => $items->map(fn($i) => [
-            'id'   => $i->id,
-            'text' => $i->nama,
-            'code' => str_pad($i->id, 4, '0', STR_PAD_LEFT) // atau $i->kode jika ada kolom kode
-        ])
-    ]);
-}
+        return response()->json([
+            'results' => $items->map(fn($i) => [
+                'id'   => $i->id,
+                'text' => $i->nama,
+                'code' => str_pad($i->id, 4, '0', STR_PAD_LEFT) // atau $i->kode jika ada kolom kode
+            ])
+        ]);
+    }
 
-public function select2Kecamatan(Request $request)
-{
-    $q          = $request->get('q', '');
-    $wilayah_id = $request->get('wilayah_id', '');
+    public function select2Kecamatan(Request $request)
+    {
+        $q          = $request->get('q', '');
+        $wilayah_id = $request->get('wilayah_id', '');
 
-    $items = \App\Models\Kecamatan::query()
-        ->when($q,          fn($m) => $m->where('nama', 'like', "%$q%"))
-        ->when($wilayah_id, fn($m) => $m->where('wilayah_id', $wilayah_id))
-        ->orderBy('nama')->limit(20)->get(['id', 'nama']);
+        $items = \App\Models\Kecamatan::query()
+            ->when($q,          fn($m) => $m->where('nama', 'like', "%$q%"))
+            ->when($wilayah_id, fn($m) => $m->where('wilayah_id', $wilayah_id))
+            ->orderBy('nama')->limit(20)->get(['id', 'nama']);
 
-    return response()->json([
-        'results' => $items->map(fn($i) => [
-            'id'   => $i->id,
-            'text' => $i->nama,
-            'code' => str_pad($i->id, 4, '0', STR_PAD_LEFT)
-        ])
-    ]);
-}
+        return response()->json([
+            'results' => $items->map(fn($i) => [
+                'id'   => $i->id,
+                'text' => $i->nama,
+                'code' => str_pad($i->id, 4, '0', STR_PAD_LEFT)
+            ])
+        ]);
+    }
 
-public function select2Pekerjaan(Request $request)
-{
-    $q = $request->get('q', '');
-    $items = \App\Models\Pekerjaan::query()
-        ->when($q, fn($m) => $m->where('nama', 'like', "%$q%"))
-        ->orderBy('nama')->limit(20)->get(['id', 'nama']);
+    public function select2Pekerjaan(Request $request)
+    {
+        $q = $request->get('q', '');
+        $items = \App\Models\Pekerjaan::query()
+            ->when($q, fn($m) => $m->where('nama', 'like', "%$q%"))
+            ->orderBy('nama')->limit(20)->get(['id', 'nama']);
 
-    return response()->json([
-        'results' => $items->map(fn($i) => [
-            'id'   => $i->id,
-            'text' => $i->nama,
-            'code' => str_pad($i->id, 4, '0', STR_PAD_LEFT)
-        ])
-    ]);
-}
+        return response()->json([
+            'results' => $items->map(fn($i) => [
+                'id'   => $i->id,
+                'text' => $i->nama,
+                'code' => str_pad($i->id, 4, '0', STR_PAD_LEFT)
+            ])
+        ]);
+    }
 
-public function select2Kewarganegaraan(Request $request)
-{
-    $q = $request->get('q', '');
-    $items = \App\Models\Kewarganegaraan::query()
-        ->when($q, fn($m) => $m->where('nama', 'like', "%$q%"))
-        ->orderBy('nama')->limit(20)->get(['id', 'nama']);
+    public function select2Kewarganegaraan(Request $request)
+    {
+        $q = $request->get('q', '');
+        $items = \App\Models\Kewarganegaraan::query()
+            ->when($q, fn($m) => $m->where('nama', 'like', "%$q%"))
+            ->orderBy('nama')->limit(20)->get(['id', 'nama']);
 
-    return response()->json([
-        'results' => $items->map(fn($i) => [
-            'id'   => $i->id,
-            'text' => $i->nama,
-            'code' => str_pad($i->id, 4, '0', STR_PAD_LEFT)
-        ])
-    ]);
-}
+        return response()->json([
+            'results' => $items->map(fn($i) => [
+                'id'   => $i->id,
+                'text' => $i->nama,
+                'code' => str_pad($i->id, 4, '0', STR_PAD_LEFT)
+            ])
+        ]);
+    }
 
-public function select2AsalDarah(Request $request)
-{
-    $q = $request->get('q', '');
-    $items = \App\Models\AsalDarah::query()
-        ->when($q, fn($m) => $m->where('nama', 'like', "%$q%"))
-        ->orderBy('nama')->limit(20)->get(['id', 'kode', 'nama']); // sesuaikan
+    public function select2AsalDarah(Request $request)
+    {
+        $q = $request->get('q', '');
+        $items = \App\Models\AsalDarah::query()
+            ->when($q, fn($m) => $m->where('nama', 'like', "%$q%"))
+            ->orderBy('nama')->limit(20)->get(['id', 'kode', 'nama']); // sesuaikan
 
-    return response()->json([
-        'results' => $items->map(fn($i) => [
-            'id'   => $i->id,
-            'text' => $i->nama,
-            'code' => $i->kode ?? str_pad($i->id, 4, '0', STR_PAD_LEFT)
-        ])
-    ]);
-}
+        return response()->json([
+            'results' => $items->map(fn($i) => [
+                'id'   => $i->id,
+                'text' => $i->nama,
+                'code' => $i->kode ?? str_pad($i->id, 4, '0', STR_PAD_LEFT)
+            ])
+        ]);
+    }
 
+    // ─── Helper: cek batas umur, return response 409 jika perlu konfirmasi ────
+    private function cekBatasUmur(Request $request)
+    {
+        if (empty($request->tanggal_lahir)) {
+            return null;
+        }
 
+        $umur = \Carbon\Carbon::parse($request->tanggal_lahir)->age;
+
+        if (($umur < self::USIA_MIN || $umur > self::USIA_MAX) && !$request->boolean('force_umur')) {
+            return response()->json([
+                'need_confirmation' => 'umur_di_luar_rentang',
+                'message' => "Usia pendonor {$umur} tahun (di luar rentang " . self::USIA_MIN . "-" . self::USIA_MAX . " tahun). Tetap simpan?",
+            ], 409);
+        }
+
+        return null;
+    }
 }

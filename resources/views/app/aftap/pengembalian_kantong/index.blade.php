@@ -1,4 +1,3 @@
-
 @extends('layouts.index')
 
 @section('title', 'Pengembalian Kantong')
@@ -29,17 +28,22 @@
     <div class="card shadow-sm mb-3">
         <div class="card-body py-2">
             <form method="GET" action="{{ route('aftap.pengembalian_kantong.index') }}" class="row g-2 align-items-end">
-                <div class="col-sm-3">
+                <div class="col-sm-3 col-lg-2">
                     <label class="form-label form-label-sm mb-1">No. Kembali</label>
                     <input type="text" name="no_kembali" class="form-control form-control-sm"
                            value="{{ $params['no_kembali'] ?? '' }}" placeholder="KB250500...">
                 </div>
-                <div class="col-sm-3">
+                <div class="col-sm-3 col-lg-2">
                     <label class="form-label form-label-sm mb-1">No. Kantong</label>
                     <input type="text" name="no_kantong" class="form-control form-control-sm"
                            value="{{ $params['no_kantong'] ?? '' }}" placeholder="Scan / ketik...">
                 </div>
-                <div class="col-sm-2">
+                <div class="col-sm-3 col-lg-2">
+                    <label class="form-label form-label-sm mb-1">Asal Darah</label>
+                    <input type="text" name="asal_darah" class="form-control form-control-sm"
+                           value="{{ $params['asal_darah'] ?? '' }}" placeholder="Cari asal darah...">
+                </div>
+                <div class="col-sm-3 col-lg-2">
                     <label class="form-label form-label-sm mb-1">Kondisi</label>
                     <select name="kondisi" class="form-select form-select-sm">
                         <option value="">-- Semua --</option>
@@ -47,12 +51,12 @@
                         <option value="rusak" {{ ($params['kondisi'] ?? '') === 'rusak' ? 'selected' : '' }}>Rusak</option>
                     </select>
                 </div>
-                <div class="col-sm-2">
+                <div class="col-sm-3 col-lg-2">
                     <label class="form-label form-label-sm mb-1">Tgl Kembali</label>
                     <input type="date" name="tgl_kembali" class="form-control form-control-sm"
                            value="{{ $params['tgl_kembali'] ?? '' }}">
                 </div>
-                <div class="col-sm-2 d-flex gap-1">
+                <div class="col-sm-3 col-lg-2 d-flex gap-1">
                     <button type="submit" class="btn btn-sm btn-primary w-100">
                         <i class="fas fa-search me-1"></i>Cari
                     </button>
@@ -76,6 +80,7 @@
                             <th>No. Kembali</th>
                             <th>Tgl Kembali</th>
                             <th>No. Kantong</th>
+                            <th>Asal Darah</th>
                             <th>Merk / Jenis</th>
                             <th>Ukuran</th>
                             <th class="text-center">Kondisi</th>
@@ -91,6 +96,7 @@
                             <td><code class="text-primary fw-semibold">{{ $row->no_kembali }}</code></td>
                             <td>{{ \Carbon\Carbon::parse($row->tgl_kembali)->format('d/m/Y') }}</td>
                             <td><span class="badge bg-light text-dark border">{{ $row->no_kantong }}</span></td>
+                            <td>{{ $row->asalDarah->nama ?? '-' }}</td>
                             <td>
                                 <span class="fw-semibold">{{ $row->merk ?? '-' }}</span>
                                 @if($row->jenis)
@@ -143,7 +149,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="10" class="text-center text-muted py-4">
+                            <td colspan="11" class="text-center text-muted py-4">
                                 <i class="fas fa-inbox fa-2x mb-2 d-block opacity-25"></i>
                                 Tidak ada data pengembalian kantong.
                             </td>
@@ -261,6 +267,7 @@ function openDetail(id) {
                 ${infoRow('No. Kembali', `<code class="text-primary fw-semibold">${d.no_kembali}</code>`)}
                 ${infoRow('Tgl Kembali', d.tgl_kembali_fmt)}
                 ${infoRow('No. Kantong', `<span class="badge bg-light text-dark border">${d.no_kantong}</span>`)}
+                ${infoRow('Asal Darah', d.asal_darah ? d.asal_darah.nama : '-')}
                 ${infoRow('Merk', d.merk || '-')}
                 ${infoRow('Jenis', d.jenis || '-')}
                 ${infoRow('Tipe', d.tipe || '-')}

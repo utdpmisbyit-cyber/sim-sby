@@ -11,19 +11,13 @@ class DonorSaveRequest extends FormRequest
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
             'tanggal_lahir' => [
                 'required',
                 'date',
-                'before_or_equal:' . now()->subYears(17)->format('Y-m-d'),
-                'after_or_equal:' . now()->subYears(60)->format('Y-m-d'),
+                'before_or_equal:' . now()->format('Y-m-d'), 
             ],
             'skrining' => 'nullable|string|max:255',
             'no_fpup'  => 'nullable|string|max:255',
@@ -34,8 +28,7 @@ class DonorSaveRequest extends FormRequest
     public function messages()
     {
         return [
-            'tanggal_lahir.before_or_equal' => 'Usia minimal adalah 17 tahun.',
-            'tanggal_lahir.after_or_equal' => 'Usia maksimal adalah 60 tahun.',
+            'tanggal_lahir.before_or_equal' => 'Tanggal lahir tidak boleh di masa depan.',
         ];
     }
 }

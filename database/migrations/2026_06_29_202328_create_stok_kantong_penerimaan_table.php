@@ -35,7 +35,7 @@ return new class extends Migration
             // tersedia | sample | serologi
             $table->string('status_kirim', 20)->default('tersedia');
             $table->text('info_kirim')->nullable();
- 
+            $table->unsignedBigInteger('penyisihan_detail_id')->nullable()->index();
             $table->timestamps();
  
             $table->foreign('penerimaan_id')

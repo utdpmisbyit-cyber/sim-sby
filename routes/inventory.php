@@ -7,7 +7,10 @@ Route::name('.')->group(function () {
 
     Route::get('permintaan_barang_logistik/get-pengajuan/{id}', [App\Http\Controllers\Inventory\PermintaanBarangLogistikController::class, 'getPengajuan'])->name('permintaan_barang_logistik.get_pengajuan');
     Route::get('permintaan_barang_logistik/find-pengajuan', [App\Http\Controllers\Inventory\PermintaanBarangLogistikController::class, 'findPengajuan'])->name('permintaan_barang_logistik.find_pengajuan');
-
+    Route::get('konfirmasi_pengembalian_barang/select-barang', [App\Http\Controllers\Inventory\PengembalianBarangController::class, 'selectBarang',])->name('konfirmasi_pengembalian_barang.select_barang');
+ 
+// CRUD standar (index, create, store, show, edit, update, destroy)
+    ioRouteResource('konfirmasi_pengembalian_barang', App\Http\Controllers\Inventory\PengembalianBarangController::class);
     ioRouteResource('barang', App\Http\Controllers\Inventory\BarangController::class);
     ioRouteResource('kelompok_barang', App\Http\Controllers\Inventory\KelompokBarangController::class);
     ioRouteResource('supplier', App\Http\Controllers\Inventory\SupplierController::class);

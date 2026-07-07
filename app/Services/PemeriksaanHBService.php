@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Models\PemeriksaanHB;
 
-class PemeriksaanHBService extends IoService
+class PemeriksaanHbService extends IoService
 {
     public array $status = PemeriksaanHB::STATUS;
     public array $golongan_darah = PemeriksaanHB::GOLONGAN_DARAH;

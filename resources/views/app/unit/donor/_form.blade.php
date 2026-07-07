@@ -637,14 +637,10 @@
             });
         }
 
-        // ── Buka dropdown setiap kali field di-klik ───────────────────────
-        // dipanggil baik saat field baru mendapat fokus (focus) maupun
-        // saat field di-klik lagi padahal sudah focused (focus tidak refire,
-        // tapi click selalu fire)
         function openDropdown() {
             closeAll($dd.attr('id'));
             var q = $input.val().trim();
-            fetchItems(q); // q boleh kosong -> backend harus return daftar default
+            fetchItems(q);
         }
 
         $input.on('focus click', function () {
@@ -700,416 +696,392 @@
         toggleClear();
     };
 
-})();
-/* ═══════════════════════════════════════════════════════════════════════════
-   DAFTARKAN SEMUA FIELD
-═══════════════════════════════════════════════════════════════════════════ */
+    /* ═══════════════════════════════════════════════════════════════════
+       DAFTARKAN SEMUA FIELD
+    ═══════════════════════════════════════════════════════════════════ */
 
-// ── Pekerjaan ────────────────────────────────────────────────────────────
-registerSearchDropdown({
-    inputId    : 'search_pekerjaan',
-    hiddenId   : 'pekerjaan_id',
-    dropdownId : 'dd_pekerjaan',
-    clearId    : 'clear_pekerjaan',
-    ajaxUrl    : '{{ route("unit.donor.select2.pekerjaan") }}',
-});
-
-// ── Kewarganegaraan ──────────────────────────────────────────────────────
-registerSearchDropdown({
-    inputId    : 'search_kewarganegaraan',
-    hiddenId   : 'kewarganegaraan_id',
-    dropdownId : 'dd_kewarganegaraan',
-    clearId    : 'clear_kewarganegaraan',
-    ajaxUrl    : '{{ route("unit.donor.select2.kewarganegaraan") }}',
-});
-
-// ── Asal Darah (Tempat Donor) ────────────────────────────────────────────
-registerSearchDropdown({
-    inputId    : 'search_asal_darah',
-    hiddenId   : 'asal_darah_id',
-    dropdownId : 'dd_asal_darah',
-    clearId    : 'clear_asal_darah',
-    ajaxUrl    : '{{ route("unit.donor.select2.asal_darah") }}',
-    onSelect   : function (item) {
-        // auto-isi nama_asal_darah
-        $('[name="nama_asal_darah"]').val(item ? item.text : '');
-    },
-});
-
-// ── Wilayah ──────────────────────────────────────────────────────────────
-registerSearchDropdown({
-    inputId    : 'search_wilayah',
-    hiddenId   : 'wilayah_id',
-    dropdownId : 'dd_wilayah',
-    clearId    : 'clear_wilayah',
-    ajaxUrl    : '{{ route("unit.donor.select2.wilayah") }}',
-    onSelect   : function (item) {
-        // reset kecamatan saat wilayah berubah
-        $('#search_kecamatan').val('');
-        $('#kecamatan_id').val('');
-        $('#dd_kecamatan').removeClass('open').empty();
-        $('#clear_kecamatan').removeClass('visible');
-    },
-});
-
-// ── Kecamatan (bergantung pada wilayah_id) ───────────────────────────────
-registerSearchDropdown({
-    inputId      : 'search_kecamatan',
-    hiddenId     : 'kecamatan_id',
-    dropdownId   : 'dd_kecamatan',
-    clearId      : 'clear_kecamatan',
-    ajaxUrl      : '{{ route("unit.donor.select2.kecamatan") }}',
-    extraParams  : function () {
-        return { wilayah_id: $('#wilayah_id').val() || '' };
-    },
-});
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   VALIDASI FIELD WAJIB UNTUK DROPDOWN CUSTOM SEBELUM SUBMIT
-   (kewarganegaraan, wilayah, kecamatan, pekerjaan disimpan di hidden input,
-   jadi atribut HTML5 "required" di kotak teksnya saja tidak cukup untuk
-   memastikan user benar2 memilih item dari hasil pencarian)
-═══════════════════════════════════════════════════════════════════════════ */
-function validateRequiredDropdowns() {
-    var requiredDropdowns = [
-        { hidden: '#kewarganegaraan_id', wrap: '#wrap_kewarganegaraan', label: 'Kewarganegaraan' },
-        { hidden: '#wilayah_id',         wrap: '#wrap_wilayah',         label: 'Wilayah / Kota' },
-        { hidden: '#kecamatan_id',       wrap: '#wrap_kecamatan',       label: 'Kecamatan' },
-        { hidden: '#pekerjaan_id',       wrap: '#wrap_pekerjaan',       label: 'Pekerjaan' },
-    ];
-
-    var firstInvalid = null;
-    var messages = [];
-
-    requiredDropdowns.forEach(function (item) {
-        var val = $(item.hidden).val();
-        var $wrap = $(item.wrap);
-        if (!val) {
-            $wrap.addClass('is-invalid');
-            messages.push(item.label);
-            if (!firstInvalid) firstInvalid = $wrap;
-        } else {
-            $wrap.removeClass('is-invalid');
-        }
+    registerSearchDropdown({
+        inputId    : 'search_pekerjaan',
+        hiddenId   : 'pekerjaan_id',
+        dropdownId : 'dd_pekerjaan',
+        clearId    : 'clear_pekerjaan',
+        ajaxUrl    : '{{ route("unit.donor.select2.pekerjaan") }}',
     });
 
-    if (messages.length) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Lengkapi Data Wajib',
-            html: 'Field berikut wajib dipilih dari daftar pencarian:<br><b>' + messages.join(', ') + '</b>'
-        });
-        if (firstInvalid) firstInvalid.find('input[type="text"]').trigger('focus');
-        return false;
-    }
+    registerSearchDropdown({
+        inputId    : 'search_kewarganegaraan',
+        hiddenId   : 'kewarganegaraan_id',
+        dropdownId : 'dd_kewarganegaraan',
+        clearId    : 'clear_kewarganegaraan',
+        ajaxUrl    : '{{ route("unit.donor.select2.kewarganegaraan") }}',
+    });
 
-    return true;
-}
-
-$('#form_info').on('submit', function (e) {
-    if (!validateRequiredDropdowns()) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        return false;
-    }
-});
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   SISA SCRIPT (tidak berubah dari versi asli)
-═══════════════════════════════════════════════════════════════════════════ */
-
-// ── AUTO VALIDASI FPUP ────────────────────────────────────────────────────
-window.fpupLoaded = window.fpupLoaded || false;
-
-$('[name="no_fpup"]').on('change blur', function () {
-    if (window.fpupLoaded) return;
-    let no_fpup = $(this).val().trim();
-    if (no_fpup === '') return;
-
-    $.ajax({
-        url  : '{{ route("unit.donor.check_fpup") }}',
-        type : 'POST',
-        data : { _token: '{{ csrf_token() }}', no_fpup },
-        success: function (res) {
-            if (!res.success) {
-                Swal.fire({ icon: 'error', title: 'FPUP Tidak Ditemukan', text: res.message });
-                return;
-            }
-
-            let fpup = res.data;
-            let detailRows = '';
-            if (fpup.details && fpup.details.length > 0) {
-                fpup.details.forEach(function (item) {
-                    detailRows += `<tr>
-                        <td>${item.jns_darah ?? '-'}</td>
-                        <td>${item.gol_darah ?? '-'}</td>
-                        <td>${item.rhesus ?? '-'}</td>
-                        <td>${item.jumlah ?? 0}</td>
-                        <td>${item.cc ?? 0}</td>
-                    </tr>`;
-                });
-            }
-
-            Swal.fire({
-                title: 'Validasi Data FPUP', width: 900,
-                html: `<div class="text-start">
-                    <div><b>No FPUP :</b> ${fpup.no_fpup ?? '-'}</div>
-                    <div><b>Tanggal FPUP :</b> ${fpup.tgl_minta ?? '-'}</div>
-                    <div><b>No Reg :</b> ${fpup.no_reg ?? '-'}</div>
-                    <div><b>Kode RS :</b> ${fpup.kode_rs ?? '-'}</div>
-                    <div><b>Nama RS :</b> ${fpup.nama_rs ?? '-'}</div>
-                    <div><b>Jenis RS :</b> ${fpup.jenis_rs ?? '-'}</div>
-                    <div><b>Bagian :</b> ${fpup.bagian ?? '-'}</div>
-                    <div><b>Kelas :</b> ${fpup.kelas_rawat ?? '-'}</div>
-                    <div><b>Dokter :</b> ${fpup.nama_dokter ?? '-'}</div>
-                    <hr>
-                    <div class="row mb-3">
-                        <div class="col-md-6"><b>Nama Pasien :</b><br>${fpup.nama_pasien ?? '-'}</div>
-                        <div class="col-md-6"><b>Tanggal Lahir :</b><br>${fpup.tgl_lahir ?? '-'}</div>
-                        <div class="col-md-6 mt-2"><b>Umur :</b><br>${fpup.umur ?? '-'} Tahun</div>
-                        <div class="col-md-6 mt-2"><b>Alamat :</b><br>${fpup.alamat ?? '-'}</div>
-                        <div class="col-md-6 mt-2"><b>Golongan Darah :</b><br>${fpup.gol_darah ?? '-'}</div>
-                        <div class="col-md-6 mt-2"><b>Rhesus :</b><br>${fpup.rhesus ?? '-'}</div>
-                    </div>
-                    <table class="table table-bordered table-sm">
-                        <thead><tr><th>Jenis Darah</th><th>Gol</th><th>Rhesus</th><th>Jumlah</th><th>CC</th></tr></thead>
-                        <tbody>${detailRows}</tbody>
-                    </table>
-                    <div class="text-danger fw-bold mt-3">Klik YES jika data FPUP benar</div>
-                </div>`,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'YES',
-                cancelButtonText : 'NO'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.fpupLoaded = true;
-                    $('#fpup_id').val(fpup.fpup_id);
-                    $('[name="nama"]').val(fpup.nama_pasien ?? '');
-                    $('[name="tanggal_lahir"]').val(fpup.tgl_lahir ?? '');
-                    $('[name="usia"]').val(fpup.umur ?? '');
-                    updateUsiaHighlight();
-                    $('[name="alamat_1"]').val(fpup.alamat ?? '');
-
-                    let gol = fpup.gol_darah ?? '';
-                    let rh  = fpup.rhesus ?? '';
-                    $('#golongan_darah_input').val(gol);
-                    $('#rhesus_input').val(rh);
-                    $('#gol_darah_buttons .btn-gol-darah').removeClass('btn-danger').addClass('btn-light');
-                    $('#gol_darah_buttons .btn-gol-darah[data-value="' + gol + '"]').removeClass('btn-light').addClass('btn-danger');
-                    $('#rhesus_buttons .btn-rhesus').removeClass('btn-primary').addClass('btn-light');
-                    $('#rhesus_buttons .btn-rhesus[data-value="' + rh + '"]').removeClass('btn-light').addClass('btn-primary');
-
-                    Swal.fire({ icon: 'success', title: 'FPUP berhasil dipilih' });
-                } else {
-                    $('[name="no_fpup"]').val('');
-                    $('#fpup_id').val('');
-                }
-            });
+    registerSearchDropdown({
+        inputId    : 'search_asal_darah',
+        hiddenId   : 'asal_darah_id',
+        dropdownId : 'dd_asal_darah',
+        clearId    : 'clear_asal_darah',
+        ajaxUrl    : '{{ route("unit.donor.select2.asal_darah") }}',
+        onSelect   : function (item) {
+            $('[name="nama_asal_darah"]').val(item ? item.text : '');
         },
-        error: function (xhr) {
-            Swal.fire({ icon: 'error', title: 'Terjadi Kesalahan', text: xhr.responseJSON?.message ?? 'Server error' });
+    });
+
+    registerSearchDropdown({
+        inputId    : 'search_wilayah',
+        hiddenId   : 'wilayah_id',
+        dropdownId : 'dd_wilayah',
+        clearId    : 'clear_wilayah',
+        ajaxUrl    : '{{ route("unit.donor.select2.wilayah") }}',
+        onSelect   : function (item) {
+            $('#search_kecamatan').val('');
+            $('#kecamatan_id').val('');
+            $('#dd_kecamatan').removeClass('open').empty();
+            $('#clear_kecamatan').removeClass('visible');
+        },
+    });
+
+    registerSearchDropdown({
+        inputId      : 'search_kecamatan',
+        hiddenId     : 'kecamatan_id',
+        dropdownId   : 'dd_kecamatan',
+        clearId      : 'clear_kecamatan',
+        ajaxUrl      : '{{ route("unit.donor.select2.kecamatan") }}',
+        extraParams  : function () {
+            return { wilayah_id: $('#wilayah_id').val() || '' };
+        },
+    });
+
+    /* ═══════════════════════════════════════════════════════════════════
+       VALIDASI FIELD WAJIB UNTUK DROPDOWN CUSTOM SEBELUM SUBMIT
+    ═══════════════════════════════════════════════════════════════════ */
+    function validateRequiredDropdowns() {
+        var requiredDropdowns = [
+            { hidden: '#kewarganegaraan_id', wrap: '#wrap_kewarganegaraan', label: 'Kewarganegaraan' },
+            { hidden: '#wilayah_id',         wrap: '#wrap_wilayah',         label: 'Wilayah / Kota' },
+            { hidden: '#kecamatan_id',       wrap: '#wrap_kecamatan',       label: 'Kecamatan' },
+            { hidden: '#pekerjaan_id',       wrap: '#wrap_pekerjaan',       label: 'Pekerjaan' },
+        ];
+
+        var firstInvalid = null;
+        var messages = [];
+
+        requiredDropdowns.forEach(function (item) {
+            var val = $(item.hidden).val();
+            var $wrap = $(item.wrap);
+            if (!val) {
+                $wrap.addClass('is-invalid');
+                messages.push(item.label);
+                if (!firstInvalid) firstInvalid = $wrap;
+            } else {
+                $wrap.removeClass('is-invalid');
+            }
+        });
+
+        if (messages.length) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Lengkapi Data Wajib',
+                html: 'Field berikut wajib dipilih dari daftar pencarian:<br><b>' + messages.join(', ') + '</b>'
+            });
+            if (firstInvalid) firstInvalid.find('input[type="text"]').trigger('focus');
+            return false;
+        }
+
+        return true;
+    }
+
+    $('#form_info').on('submit', function (e) {
+        if (!validateRequiredDropdowns()) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            return false;
         }
     });
-});
 
-// ── HIGHLIGHT POSITIF ─────────────────────────────────────────────────────
-function updatePositiveHighlight(selector) {
-    let el  = $(selector);
-    let val = (el.val() || '').toString().toLowerCase().trim();
-    el.removeClass('border-danger bg-danger text-white fw-bold');
-    if (['positif', '+', 'reactive', 'reaktif'].includes(val)) {
-        el.addClass('border-danger bg-danger text-white fw-bold');
+    /* ═══════════════════════════════════════════════════════════════════
+       SISA SCRIPT (semua di-scope lokal via IIFE ini)
+    ═══════════════════════════════════════════════════════════════════ */
+
+    // ── AUTO VALIDASI FPUP ────────────────────────────────────────────────
+    window.fpupLoaded = window.fpupLoaded || false;
+
+    $('[name="no_fpup"]').on('change blur', function () {
+        if (window.fpupLoaded) return;
+        let no_fpup = $(this).val().trim();
+        if (no_fpup === '') return;
+
+        $.ajax({
+            url  : '{{ route("unit.donor.check_fpup") }}',
+            type : 'POST',
+            data : { _token: '{{ csrf_token() }}', no_fpup },
+            success: function (res) {
+                if (!res.success) {
+                    Swal.fire({ icon: 'error', title: 'FPUP Tidak Ditemukan', text: res.message });
+                    return;
+                }
+
+                let fpup = res.data;
+                let detailRows = '';
+                if (fpup.details && fpup.details.length > 0) {
+                    fpup.details.forEach(function (item) {
+                        detailRows += `<tr>
+                            <td>${item.jns_darah ?? '-'}</td>
+                            <td>${item.gol_darah ?? '-'}</td>
+                            <td>${item.rhesus ?? '-'}</td>
+                            <td>${item.jumlah ?? 0}</td>
+                            <td>${item.cc ?? 0}</td>
+                        </tr>`;
+                    });
+                }
+
+                Swal.fire({
+                    title: 'Validasi Data FPUP', width: 900,
+                    html: `<div class="text-start">
+                        <div><b>No FPUP :</b> ${fpup.no_fpup ?? '-'}</div>
+                        <div><b>Tanggal FPUP :</b> ${fpup.tgl_minta ?? '-'}</div>
+                        <div><b>No Reg :</b> ${fpup.no_reg ?? '-'}</div>
+                        <div><b>Kode RS :</b> ${fpup.kode_rs ?? '-'}</div>
+                        <div><b>Nama RS :</b> ${fpup.nama_rs ?? '-'}</div>
+                        <div><b>Jenis RS :</b> ${fpup.jenis_rs ?? '-'}</div>
+                        <div><b>Bagian :</b> ${fpup.bagian ?? '-'}</div>
+                        <div><b>Kelas :</b> ${fpup.kelas_rawat ?? '-'}</div>
+                        <div><b>Dokter :</b> ${fpup.nama_dokter ?? '-'}</div>
+                        <hr>
+                        <div class="row mb-3">
+                            <div class="col-md-6"><b>Nama Pasien :</b><br>${fpup.nama_pasien ?? '-'}</div>
+                            <div class="col-md-6"><b>Tanggal Lahir :</b><br>${fpup.tgl_lahir ?? '-'}</div>
+                            <div class="col-md-6 mt-2"><b>Umur :</b><br>${fpup.umur ?? '-'} Tahun</div>
+                            <div class="col-md-6 mt-2"><b>Alamat :</b><br>${fpup.alamat ?? '-'}</div>
+                            <div class="col-md-6 mt-2"><b>Golongan Darah :</b><br>${fpup.gol_darah ?? '-'}</div>
+                            <div class="col-md-6 mt-2"><b>Rhesus :</b><br>${fpup.rhesus ?? '-'}</div>
+                        </div>
+                        <table class="table table-bordered table-sm">
+                            <thead><tr><th>Jenis Darah</th><th>Gol</th><th>Rhesus</th><th>Jumlah</th><th>CC</th></tr></thead>
+                            <tbody>${detailRows}</tbody>
+                        </table>
+                        <div class="text-danger fw-bold mt-3">Klik YES jika data FPUP benar</div>
+                    </div>`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'YES',
+                    cancelButtonText : 'NO'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.fpupLoaded = true;
+                        $('#fpup_id').val(fpup.fpup_id);
+                        $('[name="nama"]').val(fpup.nama_pasien ?? '');
+                        $('[name="tanggal_lahir"]').val(fpup.tgl_lahir ?? '');
+                        $('[name="usia"]').val(fpup.umur ?? '');
+                        updateUsiaHighlight();
+                        $('[name="alamat_1"]').val(fpup.alamat ?? '');
+
+                        let gol = fpup.gol_darah ?? '';
+                        let rh  = fpup.rhesus ?? '';
+                        $('#golongan_darah_input').val(gol);
+                        $('#rhesus_input').val(rh);
+                        $('#gol_darah_buttons .btn-gol-darah').removeClass('btn-danger').addClass('btn-light');
+                        $('#gol_darah_buttons .btn-gol-darah[data-value="' + gol + '"]').removeClass('btn-light').addClass('btn-danger');
+                        $('#rhesus_buttons .btn-rhesus').removeClass('btn-primary').addClass('btn-light');
+                        $('#rhesus_buttons .btn-rhesus[data-value="' + rh + '"]').removeClass('btn-light').addClass('btn-primary');
+
+                        Swal.fire({ icon: 'success', title: 'FPUP berhasil dipilih' });
+                    } else {
+                        $('[name="no_fpup"]').val('');
+                        $('#fpup_id').val('');
+                    }
+                });
+            },
+            error: function (xhr) {
+                Swal.fire({ icon: 'error', title: 'Terjadi Kesalahan', text: xhr.responseJSON?.message ?? 'Server error' });
+            }
+        });
+    });
+
+    // ── HIGHLIGHT POSITIF ─────────────────────────────────────────────────────
+    function updatePositiveHighlight(selector) {
+        let el  = $(selector);
+        let val = (el.val() || '').toString().toLowerCase().trim();
+        el.removeClass('border-danger bg-danger text-white fw-bold');
+        if (['positif', '+', 'reactive', 'reaktif'].includes(val)) {
+            el.addClass('border-danger bg-danger text-white fw-bold');
+        }
     }
-}
-$(document).on('keyup change', '[name="skrining"]',       function () { updatePositiveHighlight(this); });
-$(document).on('keyup change', '[name="golongan_rhesus"]',function () { updatePositiveHighlight(this); });
-$(document).ready(function () {
+    $(document).on('keyup change', '[name="skrining"]',       function () { updatePositiveHighlight(this); });
+    $(document).on('keyup change', '[name="golongan_rhesus"]',function () { updatePositiveHighlight(this); });
     updatePositiveHighlight('[name="skrining"]');
     updatePositiveHighlight('[name="golongan_rhesus"]');
-});
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   ★ HIGHLIGHT WARNA USIA
-   Donor di luar rentang umur layak donor (17–60 tahun) ditandai warna
-   merah pada kotak Usia, supaya petugas langsung sadar tanpa harus
-   menghitung manual. Dalam rentang umur normal warnanya dikembalikan
-   ke tampilan biasa.
-═══════════════════════════════════════════════════════════════════════════ */
-const USIA_MIN = 17;
-const USIA_MAX = 60;
+    /* ═══════════════════════════════════════════════════════════════════
+       ★ HIGHLIGHT WARNA USIA (const di-scope lokal, TIDAK bocor ke global)
+    ═══════════════════════════════════════════════════════════════════ */
+    const USIA_MIN = 17;
+    const USIA_MAX = 65;
 
-function updateUsiaHighlight() {
-    let el   = $('#usia');
-    let usia = parseInt(el.val());
+    function updateUsiaHighlight() {
+        let el   = $('#usia');
+        let usia = parseInt(el.val());
 
-    // bersihkan dulu semua kemungkinan warna sebelumnya
-    el.removeClass('border-danger bg-danger text-white fw-bold');
+        el.removeClass('border-danger bg-danger text-white fw-bold');
 
-    if (isNaN(usia)) return;
+        if (isNaN(usia)) return;
 
-    if (usia < USIA_MIN || usia > USIA_MAX) {
-        el.addClass('border-danger bg-danger text-white fw-bold');
+        if (usia < USIA_MIN || usia > USIA_MAX) {
+            el.addClass('border-danger bg-danger text-white fw-bold');
+        }
     }
-}
 
-// ── HITUNG USIA ───────────────────────────────────────────────────────────
-function hitungUsia(tgl) {
-    if (!tgl) return '';
-    let d = new Date(tgl);
-    if (isNaN(d)) return '';
-    let today = new Date();
-    let age   = today.getFullYear() - d.getFullYear();
-    let m     = today.getMonth() - d.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < d.getDate())) age--;
-    return age;
-}
-$('[name="tanggal_lahir"]').on('change input', function () {
-    $('#usia').val(hitungUsia($(this).val()));
-    updateUsiaHighlight();
-});
-$(document).ready(function () {
+    // ── HITUNG USIA ───────────────────────────────────────────────────────────
+    function hitungUsia(tgl) {
+        if (!tgl) return '';
+        let d = new Date(tgl);
+        if (isNaN(d)) return '';
+        let today = new Date();
+        let age   = today.getFullYear() - d.getFullYear();
+        let m     = today.getMonth() - d.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < d.getDate())) age--;
+        return age;
+    }
+    $('[name="tanggal_lahir"]').on('change input', function () {
+        $('#usia').val(hitungUsia($(this).val()));
+        updateUsiaHighlight();
+    });
     let tgl = $('[name="tanggal_lahir"]').val();
     if (tgl) $('#usia').val(hitungUsia(tgl));
     updateUsiaHighlight();
-});
 
-// ── AUTO CHECK PENGHARGAAN ────────────────────────────────────────────────
-function updatePenghargaan() {
-    let ke = parseInt($('#donor_ke').val() || 0);
-    $('input[name="penghargaan[]"]').prop('checked', false);
-    if (ke >= 10)  $('input[name="penghargaan[]"][value="10"]').prop('checked', true);
-    if (ke >= 25)  $('input[name="penghargaan[]"][value="25"]').prop('checked', true);
-    if (ke >= 50)  $('input[name="penghargaan[]"][value="50"]').prop('checked', true);
-    if (ke >= 100) $('input[name="penghargaan[]"][value="100"]').prop('checked', true);
-}
-$(document).on('keyup change input', '#donor_ke', function () { updatePenghargaan(); });
-$(document).ready(function () { updatePenghargaan(); });
+    // ── AUTO CHECK PENGHARGAAN ────────────────────────────────────────────────
+    function updatePenghargaan() {
+        let ke = parseInt($('#donor_ke').val() || 0);
+        $('input[name="penghargaan[]"]').prop('checked', false);
+        if (ke >= 10)  $('input[name="penghargaan[]"][value="10"]').prop('checked', true);
+        if (ke >= 25)  $('input[name="penghargaan[]"][value="25"]').prop('checked', true);
+        if (ke >= 50)  $('input[name="penghargaan[]"][value="50"]').prop('checked', true);
+        if (ke >= 100) $('input[name="penghargaan[]"][value="100"]').prop('checked', true);
+    }
+    $(document).on('keyup change input', '#donor_ke', function () { updatePenghargaan(); });
+    updatePenghargaan();
 
-// ── DATEPICKER ────────────────────────────────────────────────────────────
-$(document).ready(function () {
+    // ── DATEPICKER ────────────────────────────────────────────────────────────
     $('.datepicker').flatpickr({
-    locale: "id",
-    altInput: true,
-    altFormat: "d/m/Y",
-    dateFormat: "Y-m-d",
-    allowInput: true
-});
-});
+        locale: "id",
+        altInput: true,
+        altFormat: "d/m/Y",
+        dateFormat: "Y-m-d",
+        allowInput: true
+    });
 
-// ── COPY ALAMAT ───────────────────────────────────────────────────────────
-$('#btn_copy_alamat').on('click', function () {
-    $('[name="alamat_2"]').val($('[name="alamat_1"]').val()).trigger('input');
-});
+    // ── COPY ALAMAT ───────────────────────────────────────────────────────────
+    $('#btn_copy_alamat').on('click', function () {
+        $('[name="alamat_2"]').val($('[name="alamat_1"]').val()).trigger('input');
+    });
 
-// ── GOLONGAN DARAH BUTTON TOGGLE ─────────────────────────────────────────
-@if(!($donor->is_golongan_darah_locked ?? false))
-$('#gol_darah_buttons').on('click', '.btn-gol-darah', function () {
-    $('#gol_darah_buttons .btn-gol-darah').removeClass('btn-danger').addClass('btn-light');
-    $(this).removeClass('btn-light').addClass('btn-danger');
-    $('#golongan_darah_input').val($(this).data('value'));
-});
-$('#rhesus_buttons').on('click', '.btn-rhesus', function () {
-    $('#rhesus_buttons .btn-rhesus').removeClass('btn-primary').addClass('btn-light');
-    $(this).removeClass('btn-light').addClass('btn-primary');
-    $('#rhesus_input').val($(this).data('value'));
-});
-@else
-$('#gol_darah_buttons .btn-gol-darah, #rhesus_buttons .btn-rhesus').prop('disabled', true);
-@endif
+    // ── GOLONGAN DARAH BUTTON TOGGLE ─────────────────────────────────────────
+    @if(!($donor->is_golongan_darah_locked ?? false))
+    $('#gol_darah_buttons').on('click', '.btn-gol-darah', function () {
+        $('#gol_darah_buttons .btn-gol-darah').removeClass('btn-danger').addClass('btn-light');
+        $(this).removeClass('btn-light').addClass('btn-danger');
+        $('#golongan_darah_input').val($(this).data('value'));
+    });
+    $('#rhesus_buttons').on('click', '.btn-rhesus', function () {
+        $('#rhesus_buttons .btn-rhesus').removeClass('btn-primary').addClass('btn-light');
+        $(this).removeClass('btn-light').addClass('btn-primary');
+        $('#rhesus_input').val($(this).data('value'));
+    });
+    @else
+    $('#gol_darah_buttons .btn-gol-darah, #rhesus_buttons .btn-rhesus').prop('disabled', true);
+    @endif
 
-// ── AUTO DONOR KE dari NO KTP ─────────────────────────────────────────────
-window._donor_ke_timer = window._donor_ke_timer || null;
-$('[name="no_ktp"]').on('input change', function () {
-    let no_ktp = $(this).val().trim();
-    if (no_ktp.length < 16) return;
-    clearTimeout(_donor_ke_timer);
-    _donor_ke_timer = setTimeout(function () {
-        $.get('{{ route("unit.donor.get_donor_ke") }}', { no_ktp }, function (res) {
-            if (res.donor_ke !== undefined) {
-                $('[name="donor_ke"]').val(res.donor_ke).trigger('input');
-                if (res.golongan_darah) {
-                    $('#golongan_darah_input').val(res.golongan_darah);
-                    $('#gol_darah_buttons .btn-gol-darah').removeClass('btn-danger').addClass('btn-light');
-                    $('#gol_darah_buttons .btn-gol-darah[data-value="' + res.golongan_darah + '"]').removeClass('btn-light').addClass('btn-danger');
+    // ── AUTO DONOR KE dari NO KTP ─────────────────────────────────────────────
+    window._donor_ke_timer = window._donor_ke_timer || null;
+    $('[name="no_ktp"]').on('input change', function () {
+        let no_ktp = $(this).val().trim();
+        if (no_ktp.length < 16) return;
+        clearTimeout(window._donor_ke_timer);
+        window._donor_ke_timer = setTimeout(function () {
+            $.get('{{ route("unit.donor.get_donor_ke") }}', { no_ktp }, function (res) {
+                if (res.donor_ke !== undefined) {
+                    $('[name="donor_ke"]').val(res.donor_ke).trigger('input');
+                    if (res.golongan_darah) {
+                        $('#golongan_darah_input').val(res.golongan_darah);
+                        $('#gol_darah_buttons .btn-gol-darah').removeClass('btn-danger').addClass('btn-light');
+                        $('#gol_darah_buttons .btn-gol-darah[data-value="' + res.golongan_darah + '"]').removeClass('btn-light').addClass('btn-danger');
+                    }
+                    if (res.rhesus) {
+                        $('#rhesus_input').val(res.rhesus);
+                        $('#rhesus_buttons .btn-rhesus').removeClass('btn-primary').addClass('btn-light');
+                        $('#rhesus_buttons .btn-rhesus[data-value="' + res.rhesus + '"]').removeClass('btn-light').addClass('btn-primary');
+                    }
                 }
-                if (res.rhesus) {
-                    $('#rhesus_input').val(res.rhesus);
-                    $('#rhesus_buttons .btn-rhesus').removeClass('btn-primary').addClass('btn-light');
-                    $('#rhesus_buttons .btn-rhesus[data-value="' + res.rhesus + '"]').removeClass('btn-light').addClass('btn-primary');
-                }
-            }
-        });
-    }, 600);
-});
+            });
+        }, 600);
+    });
 
-// ── FOTO: UPLOAD FILE ─────────────────────────────────────────────────────
-$('#foto_upload').on('change', function () {
-    let file = this.files[0];
-    if (!file) return;
-    let reader = new FileReader();
-    reader.onload = function (e) {
-        $('#foto_preview').attr('src', e.target.result);
-        $('#foto_base64').val('');
-    };
-    reader.readAsDataURL(file);
-});
+    // ── FOTO: UPLOAD FILE ─────────────────────────────────────────────────────
+    $('#foto_upload').on('change', function () {
+        let file = this.files[0];
+        if (!file) return;
+        let reader = new FileReader();
+        reader.onload = function (e) {
+            $('#foto_preview').attr('src', e.target.result);
+            $('#foto_base64').val('');
+        };
+        reader.readAsDataURL(file);
+    });
 
-// ── FOTO: HAPUS ───────────────────────────────────────────────────────────
-$('#btn_hapus_foto').on('click', function () {
-    $('#foto_preview').attr('src', '{{ asset('assets/media/avatars/blank.jpg') }}');
-    $('#foto_upload').val('');
-    $('#foto_base64').val('hapus');
-});
+    // ── FOTO: HAPUS ───────────────────────────────────────────────────────────
+    $('#btn_hapus_foto').on('click', function () {
+        $('#foto_preview').attr('src', '{{ asset('assets/media/avatars/blank.jpg') }}');
+        $('#foto_upload').val('');
+        $('#foto_base64').val('hapus');
+    });
 
-// ── FOTO: KAMERA ──────────────────────────────────────────────────────────
-window._camera_stream = window._camera_stream || null;
-$('#btn_capture').on('click', function () {
-    $('#camera_area').removeClass('d-none');
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
-        .then(function (stream) {
-            window._camera_stream = stream;
-            $('#camera_video')[0].srcObject = stream;
-        })
-        .catch(function (err) {
-            alert('Kamera tidak dapat diakses: ' + err.message);
-            $('#camera_area').addClass('d-none');
-        });
-});
-$('#btn_snap').on('click', function () {
-    let video  = $('#camera_video')[0];
-    let canvas = $('#camera_canvas')[0];
-    canvas.width  = video.videoWidth;
-    canvas.height = video.videoHeight;
-    canvas.getContext('2d').drawImage(video, 0, 0);
-    let dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-    $('#foto_preview').attr('src', dataUrl);
-    $('#foto_base64').val(dataUrl);
-    $('#foto_upload').val('');
-    stop_camera();
-});
-$('#btn_cancel_camera').on('click', function () { stop_camera(); });
-function stop_camera() {
-    if (window._camera_stream) { window._camera_stream.getTracks().forEach(t=>t.stop()); _camera_stream = null; }
-    $('#camera_area').addClass('d-none');
-}
+    // ── FOTO: KAMERA ──────────────────────────────────────────────────────────
+    window._camera_stream = window._camera_stream || null;
+    $('#btn_capture').on('click', function () {
+        $('#camera_area').removeClass('d-none');
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+            .then(function (stream) {
+                window._camera_stream = stream;
+                $('#camera_video')[0].srcObject = stream;
+            })
+            .catch(function (err) {
+                alert('Kamera tidak dapat diakses: ' + err.message);
+                $('#camera_area').addClass('d-none');
+            });
+    });
+    $('#btn_snap').on('click', function () {
+        let video  = $('#camera_video')[0];
+        let canvas = $('#camera_canvas')[0];
+        canvas.width  = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        let dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        $('#foto_preview').attr('src', dataUrl);
+        $('#foto_base64').val(dataUrl);
+        $('#foto_upload').val('');
+        stop_camera();
+    });
+    $('#btn_cancel_camera').on('click', function () { stop_camera(); });
+    function stop_camera() {
+        if (window._camera_stream) { window._camera_stream.getTracks().forEach(t=>t.stop()); window._camera_stream = null; }
+        $('#camera_area').addClass('d-none');
+    }
 
-// ── AUTO GENERATE KODE & NO PENDAFTARAN ──────────────────────────────────
+    // ── AUTO GENERATE KODE & NO PENDAFTARAN ──────────────────────────────────
+    @if(empty($donor))
+    $('#asal_darah_id').val(1);
+    $('#search_asal_darah').val('UTD PMI Surabaya');
+    $('[name="nama_asal_darah"]').val('UTD PMI Surabaya');
 
-@if(empty($donor))
+    $.get('{{ route('unit.donor.generate_kode') }}', function (res) {
+        if (res.kode) $('#kode_display').val(res.kode);
+        if (res.no_pendaftaran) $('#no_pendaftaran_display').val(res.no_pendaftaran);
+    });
+    @endif
 
-// default Tempat Donor
-$('#asal_darah_id').val(1); // sesuaikan ID di database
-$('#search_asal_darah').val('UTD PMI Surabaya');
-$('[name="nama_asal_darah"]').val('UTD PMI Surabaya');
+    // ── INIT FORM SUBMIT ──────────────────────────────────────────────────────
+    init_form({{ $donor->id ?? '' }});
 
-$.get('{{ route('unit.donor.generate_kode') }}', function (res) {
-    if (res.kode) $('#kode_display').val(res.kode);
-    if (res.no_pendaftaran) $('#no_pendaftaran_display').val(res.no_pendaftaran);
-});
-
-@endif
-
-// ── INIT FORM SUBMIT ──────────────────────────────────────────────────────
-init_form({{ $donor->id ?? '' }});
+})();
 </script>

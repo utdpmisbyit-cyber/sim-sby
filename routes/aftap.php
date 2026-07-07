@@ -43,7 +43,7 @@ Route::get('/tipe_kantong/search', [App\Http\Controllers\Aftap\AftapController::
  
 });
      Route::prefix('pengembalian_kantong')->name('pengembalian_kantong.')->group(function () {
- 
+        Route::get('/select2/asal-darah', [App\Http\Controllers\Aftap\PengembalianKantongController::class, 'selectAsalDarah'])->name('select2_asal_darah');
         Route::get('/',   [App\Http\Controllers\Aftap\PengembalianKantongController::class, 'index'])      ->name('index');
         Route::get('/create',[App\Http\Controllers\Aftap\PengembalianKantongController::class, 'create'])     ->name('create');
         Route::post('/scan_kantong',[App\Http\Controllers\Aftap\PengembalianKantongController::class, 'scanKantong'])->name('scan_kantong');
@@ -62,7 +62,6 @@ Route::get('/tipe_kantong/search', [App\Http\Controllers\Aftap\AftapController::
         Route::get('/{pengirimanSample}',    [App\Http\Controllers\Aftap\PengirimanSampleController::class, 'show'])    ->name('show');
         Route::put('/{pengirimanSample}',    [App\Http\Controllers\Aftap\PengirimanSampleController::class, 'update'])  ->name('update');
         Route::delete('/{pengirimanSample}', [App\Http\Controllers\Aftap\PengirimanSampleController::class, 'destroy']) ->name('destroy');
-
         Route::post('/detail/{detail}/tolak', [App\Http\Controllers\Aftap\PengirimanSampleController::class, 'toggleTolak'])->name('detail.tolak');
 
     });
@@ -71,14 +70,28 @@ Route::get('/tipe_kantong/search', [App\Http\Controllers\Aftap\AftapController::
 
             Route::get('/',   [App\Http\Controllers\Aftap\PengeluaranKantongMobileUnitController::class,'index'])->name('index');
             Route::post('/',  [App\Http\Controllers\Aftap\PengeluaranKantongMobileUnitController::class,'store'])->name('store');
-
             Route::post('/scan-kantong',[App\Http\Controllers\Aftap\PengeluaranKantongMobileUnitController::class,'scanKantong'])->name('scan-kantong');
             Route::delete('/remove-kantong', [App\Http\Controllers\Aftap\PengeluaranKantongMobileUnitController::class,'removeKantong'])->name('remove-kantong');
-
             Route::get('/{id}/edit',[App\Http\Controllers\Aftap\PengeluaranKantongMobileUnitController::class,'edit'])->name('edit');
             Route::put('/{id}',     [App\Http\Controllers\Aftap\PengeluaranKantongMobileUnitController::class,'update'])->name('update');
             Route::delete('/{id}',  [App\Http\Controllers\Aftap\PengeluaranKantongMobileUnitController::class,'destroy'])->name('destroy');
         });
+
+     Route::prefix('penyisihan_kantong_aftap')->name('penyisihan_kantong_aftap.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Aftap\PenyisihanKantongAftapController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Aftap\PenyisihanKantongAftapController::class, 'create'])->name('create');
+        Route::post('/scan_kantong', [App\Http\Controllers\Aftap\PenyisihanKantongAftapController::class, 'scanKantong'])->name('scan_kantong');
+        Route::post('/', [App\Http\Controllers\Aftap\PenyisihanKantongAftapController::class, 'store'])->name('store');
+        Route::get('/{penyisihan_kantong_aftap}', [App\Http\Controllers\Aftap\PenyisihanKantongAftapController::class, 'show'])->name('show');
+        Route::get('/{penyisihan_kantong_aftap}/edit', [App\Http\Controllers\Aftap\PenyisihanKantongAftapController::class, 'edit'])->name('edit');
+        Route::put('/{penyisihan_kantong_aftap}', [App\Http\Controllers\Aftap\PenyisihanKantongAftapController::class, 'update'])->name('update');
+        Route::delete('/{penyisihan_kantong_aftap}', [App\Http\Controllers\Aftap\PenyisihanKantongAftapController::class, 'destroy'])->name('destroy');
+    
+        // Aksi per-baris kantong di dalam grid (dipakai via AJAX di halaman create/edit)
+        Route::post('/{penyisihan_kantong_aftap}/detail', [App\Http\Controllers\Aftap\PenyisihanKantongAftapController::class, 'addDetail'])->name('detail.add');
+        Route::put('/detail/{detail}/alasan', [App\Http\Controllers\Aftap\PenyisihanKantongAftapController::class, 'updateAlasanDetail'])->name('detail.update_alasan');
+        Route::delete('/detail/{detail}', [App\Http\Controllers\Aftap\PenyisihanKantongAftapController::class, 'removeDetail'])->name('detail.remove');
+    });
      Route::get('riwayat_pengiriman_sample', [App\Http\Controllers\Aftap\PengirimanSampleController::class, 'riwayat'])->name('riwayat_pengiriman_sample');
 
 
@@ -86,7 +99,7 @@ Route::get('/tipe_kantong/search', [App\Http\Controllers\Aftap\AftapController::
          Route::put('permintaan_kantong/{id}', [\App\Http\Controllers\Aftap\PermintaanKantongController::class, 'update'])->name('permintaan_kantong.update');
          Route::get('permintaan_kantong/{id}/edit', [\App\Http\Controllers\Aftap\PermintaanKantongController::class, 'edit'])->name('permintaan_kantong.edit');
 
-        ioRouteResource('permintaan_kantong', \App\Http\Controllers\Aftap\PermintaanKantongController::class);
+        // ioRouteResource('permintaan_kantong', \App\Http\Controllers\Aftap\PermintaanKantongController::class);
   
 
 });

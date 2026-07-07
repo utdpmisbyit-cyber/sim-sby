@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Apheresis;
 use App\Http\Controllers\Controller;
 use App\Services\DonorService;
 use App\Models\Donor;
+use App\Models\LogDonor;
 use Illuminate\Http\Request;
 use App\Services\LogDonorService;
 
@@ -13,6 +14,11 @@ class PendaftaranController extends Controller
 {
     protected $logDonorService;
     protected $service;
+
+    // ★ Batas usia layak donor
+    const USIA_MIN = 17;
+    const USIA_MAX = 65;
+
     public function __construct()
     {
         $this->logDonorService = new LogDonorService();
@@ -22,13 +28,14 @@ class PendaftaranController extends Controller
     public function index()
     {
         $params = '';
-         $steps = $this->logDonorService->next_step;
-        return view('app.apheresis.pendaftaran.index', compact('params','steps'));
+        $steps = $this->logDonorService->next_step;
+        return view('app.apheresis.pendaftaran.index', compact('params', 'steps'));
     }
-        public function search(Request $request)
+
+    public function search(Request $request)
     {
         $date = date('Y-m-d');
-       $paramsLogDonor = [
+        $paramsLogDonor = [
             'date' => $date,
             'jenis_donor' => 'apheresis',
             'with' => ['donor', 'petugasRegistrasi']
@@ -42,18 +49,19 @@ class PendaftaranController extends Controller
         $steps = $this->logDonorService->next_step;
         $count_steps = [];
         $donors = $this->service->search($request->all());
-        foreach ($steps as $step) $count_steps[$step] = $this->logDonorService->search(['date' => $date, 'step' => $step,'jenis_donor' => 'apheresis', 'count' => 1]);
+        foreach ($steps as $step) $count_steps[$step] = $this->logDonorService->search(['date' => $date, 'step' => $step, 'count' => 1]);
 
-        return view('app.apheresis.pendaftaran._table', compact('log_donors', 'steps', 'count_steps','donors'));
+        return view('app.apheresis.pendaftaran._table', compact('log_donors', 'steps', 'count_steps', 'donors'));
     }
-        public function search_donor(Request $request)
+
+    public function search_donor(Request $request)
     {
         $donorService = new DonorService();
         $donors = $donorService->search(['search' => $request->input('search') ?? '-', 'limit' => 10]);
 
         return view('app.apheresis.pendaftaran._table_donor', compact('donors'));
     }
- 
+
     public function create()
     {
         $donor = null;
@@ -62,6 +70,41 @@ class PendaftaranController extends Controller
 
     public function store(Request $request)
     {
+        $request->validate([
+            'donor_id' => 'required|exists:donor,id',
+        ]);
+
+        $donor = $this->service->find($request->donor_id);
+
+        if (!$donor) {
+            return response()->json(['error' => 'Donor tidak ditemukan'], 404);
+        }
+
+        // ── 1. Cek apakah donor ini SUDAH didaftarkan HARI INI ──────────────
+        $sudahDaftarHariIni = LogDonor::where('donor_id', $donor->id)
+            ->whereDate('created_at', now()->toDateString())
+            ->exists();
+
+        if ($sudahDaftarHariIni && !$request->boolean('force')) {
+            return response()->json([
+                'need_confirmation' => 'sudah_daftar_hari_ini',
+                'message' => "Donor {$donor->nama} sudah didaftarkan hari ini. Tetap lanjutkan?",
+            ], 409);
+        }
+
+        // ── 2. Cek batasan umur 17–65 tahun ──────────────────────────────────
+        $umur = $donor->tanggal_lahir
+            ? \Carbon\Carbon::parse($donor->tanggal_lahir)->age
+            : null;
+
+        if ($umur !== null && ($umur < self::USIA_MIN || $umur > self::USIA_MAX) && !$request->boolean('force_umur')) {
+            return response()->json([
+                'need_confirmation' => 'umur_di_luar_rentang',
+                'message' => "Umur donor {$umur} tahun di luar rentang " . self::USIA_MIN . "-" . self::USIA_MAX . " tahun. Tetap lanjutkan?",
+            ], 409);
+        }
+
+        // ── Proses simpan (logic asli, tidak diubah) ────────────────────────
         $data = $request->all();
         if (isset($data['penghargaan']) && is_array($data['penghargaan'])) {
             $data['penghargaan'] = implode(',', $data['penghargaan']);
@@ -79,11 +122,9 @@ class PendaftaranController extends Controller
         }
         unset($data['foto_base64']);
 
-        $donor = $this->service->find($request->donor_id);
-
         // ★ Deklarasi SEBELUM store() agar bisa dipakai di response
         $kode_log = $this->logDonorService->autoKode();
-        
+
         $this->logDonorService->store([
             'kode'                  => $kode_log,
             'cabang_id'             => session('active_cabang.id'),
@@ -92,10 +133,12 @@ class PendaftaranController extends Controller
             'step'                  => 'Registrasi',
             'jenis_donor'           => 'apheresis',
         ]);
+
         $totalDonor = $this->logDonorService->countByDonor($donor->id);
         $donor->update([
             'donor_ke' => $totalDonor
         ]);
+
         return response()->json([
             'status'  => true,
             'message' => 'Data berhasil disimpan',
@@ -156,7 +199,7 @@ class PendaftaranController extends Controller
 
     /**
      * API: Generate kode dan no_pendaftaran baru (untuk form tambah donor).
-     * GET /apheresis/donor/generate_kode
+     * GET /unit/donor/generate_kode
      */
     public function generate_kode()
     {
@@ -168,7 +211,7 @@ class PendaftaranController extends Controller
 
     /**
      * API: Hitung donor_ke berdasarkan no_ktp.
-     * GET /apheresis/donor/get_donor_ke?no_ktp=xxx
+     * GET /unit/donor/get_donor_ke?no_ktp=xxx
      */
     public function get_donor_ke(Request $request)
     {
@@ -211,8 +254,3 @@ class PendaftaranController extends Controller
         return $filename;
     }
 }
-
-
-
-
-

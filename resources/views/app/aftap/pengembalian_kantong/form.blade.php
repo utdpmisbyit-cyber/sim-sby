@@ -13,6 +13,94 @@
 
 @push('styles')
 <style>
+    /* ─── SEARCH DROPDOWN (samakan dengan modul Pendaftaran Donor) ────────── */
+    .search-wrap { position: relative; }
+    .search-wrap .form-control-sm {
+        border-radius: 8px;
+        border: 1.5px solid #e0e0e0;
+        font-size: .82rem;
+        height: 33px;
+        transition: border-color .15s, box-shadow .15s;
+        padding-right: 28px;
+    }
+    .search-wrap .form-control-sm:focus {
+        border-color: #3e97ff;
+        box-shadow: 0 0 0 3px rgba(62,151,255,.12);
+        outline: none;
+    }
+    .search-wrap .search-clear {
+        position: absolute;
+        right: 7px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #aaa;
+        font-size: .75rem;
+        display: none;
+        background: none;
+        border: none;
+        padding: 0;
+        line-height: 1;
+    }
+    .search-wrap .search-clear.visible { display: block; }
+    .search-wrap .search-clear:hover { color: #e74c3c; }
+
+    .search-dropdown {
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        right: 0;
+        background: #fff;
+        border: 1px solid #ececec;
+        border-radius: 10px;
+        box-shadow: 0 12px 28px rgba(0,0,0,.10), 0 2px 6px rgba(0,0,0,.06);
+        z-index: 9999;
+        max-height: 230px;
+        overflow-y: auto;
+        display: none;
+        padding: 4px;
+    }
+    .search-dropdown.open { display: block; }
+
+    .search-dropdown .sd-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background .12s;
+        font-size: .82rem;
+    }
+    .search-dropdown .sd-item + .sd-item { margin-top: 1px; }
+    .search-dropdown .sd-item:hover, .search-dropdown .sd-item.active { background: #fdeeee; }
+
+    .search-dropdown .sd-code {
+        flex-shrink: 0;
+        min-width: 34px;
+        text-align: center;
+        font-size: .68rem;
+        font-weight: 700;
+        font-family: monospace;
+        color: #e74c3c;
+        background: #fdeeee;
+        border-radius: 5px;
+        padding: 3px 5px;
+    }
+    .search-dropdown .sd-item:hover .sd-code, .search-dropdown .sd-item.active .sd-code {
+        background: #e74c3c;
+        color: #fff;
+    }
+
+    .search-dropdown .sd-text { color: #1a1a2e; flex: 1; }
+    .search-dropdown .sd-empty, .search-dropdown .sd-loading {
+        padding: 12px 10px;
+        font-size: .8rem;
+        color: #999;
+        text-align: center;
+    }
+    .search-dropdown .sd-loading i { color: #3e97ff; }
+
     /* ── Scan feedback ── */
     .scan-status { transition: all .25s ease; }
     .scan-success { border-color: #198754 !important; background: #f0fdf4 !important; }
@@ -105,6 +193,28 @@
                                        required>
                                 @error('tgl_kembali')
                                     <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            {{-- ── Asal Darah (searchable, sama seperti modul Pendaftaran Donor) ── --}}
+                            <div class="col-sm-6">
+                                <label class="form-label form-label-sm fw-semibold">Asal Darah</label>
+                                @php
+                                    $asalDarahIdVal   = old('asal_darah_id', $isEdit ? $pengembalian->asal_darah_id : '');
+                                    $asalDarahNamaVal = old('asal_darah_nama', $isEdit && $pengembalian->asalDarah ? $pengembalian->asalDarah->nama : '');
+                                @endphp
+                                <input type="hidden" name="asal_darah_id" id="asal_darah_id" value="{{ $asalDarahIdVal }}">
+                                <div class="search-wrap" id="wrap_asal_darah">
+                                    <input type="text" id="search_asal_darah"
+                                           class="form-control form-control-sm @error('asal_darah_id') is-invalid @enderror"
+                                           placeholder="Cari asal darah..."
+                                           value="{{ $asalDarahNamaVal }}"
+                                           autocomplete="off">
+                                    <button type="button" class="search-clear" id="clear_asal_darah">✕</button>
+                                    <div class="search-dropdown" id="dd_asal_darah"></div>
+                                </div>
+                                @error('asal_darah_id')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
 
@@ -294,14 +404,14 @@
                                         <span class="badge bg-success">Baik</span>
                                     </label>
                                 </div>
-                                <div class="form-check">
+                                <!-- <div class="form-check">
                                     <input class="form-check-input" type="radio" name="kondisi"
                                            id="kondisi_rusak" value="rusak"
                                            {{ $kondisiVal === 'rusak' ? 'checked' : '' }}>
                                     <label class="form-check-label" for="kondisi_rusak">
                                         <span class="badge bg-danger">Rusak</span>
                                     </label>
-                                </div>
+                                </div> -->
                             </div>
                             @error('kondisi')
                                 <div class="text-danger small mt-1">{{ $message }}</div>
@@ -336,6 +446,177 @@
 </div>
 
 @push('scripts')
+<script>
+    // ─── SEARCH DROPDOWN (pola registerSearchDropdown, sama seperti modul Pendaftaran Donor) ───
+    (function () {
+        'use strict';
+
+        function closeAll(exceptId) {
+            document.querySelectorAll('.search-dropdown').forEach(function (dd) {
+                if (dd.id !== exceptId) dd.classList.remove('open');
+            });
+        }
+
+        function escapeHtml(str) {
+            return String(str ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        // Guard: daftarkan listener klik-luar HANYA SEKALI walau file ini
+        // ikut ke-load lagi di halaman lain yang juga pakai pola yang sama.
+        if (!window._searchDropdownOutsideClickBound) {
+            document.addEventListener('click', function (e) {
+                if (!e.target.closest('.search-wrap')) closeAll('');
+            });
+            window._searchDropdownOutsideClickBound = true;
+        }
+
+        window.registerSearchDropdown = window.registerSearchDropdown || function (cfg) {
+            var $input  = $('#' + cfg.inputId);
+            var $hidden = $('#' + cfg.hiddenId);
+            var $dd     = $('#' + cfg.dropdownId);
+            var $clear  = $('#' + cfg.clearId);
+            var _timer  = null;
+            var _xhr    = null;
+            var _active = -1;
+
+            function toggleClear() {
+                if ($input.val().trim()) $clear.addClass('visible');
+                else                     $clear.removeClass('visible');
+            }
+
+            function renderItems(items) {
+                $dd.empty();
+                _active = -1;
+
+                if (!items || !items.length) {
+                    $dd.html('<div class="sd-empty">Tidak ada hasil</div>').addClass('open');
+                    return;
+                }
+
+                items.forEach(function (item, idx) {
+                    var code = item.code ?? String(item.id).padStart(4, '0');
+                    var $item = $('<div class="sd-item" tabindex="-1">')
+                        .attr('data-idx', idx)
+                        .html(
+                            '<span class="sd-code">' + escapeHtml(code) + '</span>' +
+                            '<span class="sd-text">'  + escapeHtml(item.text) + '</span>'
+                        )
+                        .on('mousedown', function (e) {
+                            e.preventDefault();
+                            selectItem(item);
+                        });
+                    $dd.append($item);
+                });
+
+                $dd.addClass('open');
+            }
+
+            function selectItem(item) {
+                $input.val(item.text);
+                $hidden.val(item.id);
+                toggleClear();
+                $dd.removeClass('open').empty();
+                $input.closest('.search-wrap').removeClass('is-invalid');
+                if (typeof cfg.onSelect === 'function') cfg.onSelect(item);
+            }
+
+            function fetchItems(q) {
+                if (_xhr) _xhr.abort();
+                $dd.html('<div class="sd-loading"><i class="fas fa-spinner fa-spin me-1"></i>Mencari...</div>').addClass('open');
+
+                var params = { q: q };
+                if (typeof cfg.extraParams === 'function') {
+                    $.extend(params, cfg.extraParams());
+                }
+
+                _xhr = $.ajax({
+                    url     : cfg.ajaxUrl,
+                    data    : params,
+                    success : function (res) {
+                        renderItems(res.results || []);
+                    },
+                    error   : function (xhr) {
+                        if (xhr.statusText !== 'abort') {
+                            $dd.html('<div class="sd-empty">Gagal memuat data</div>').addClass('open');
+                        }
+                    }
+                });
+            }
+
+            function openDropdown() {
+                closeAll($dd.attr('id'));
+                var q = $input.val().trim();
+                fetchItems(q);
+            }
+
+            $input.on('focus click', function () {
+                openDropdown();
+            });
+
+            $input.on('keydown', function (e) {
+                var $items = $dd.find('.sd-item');
+                var total  = $items.length;
+                if (!total) return;
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    _active = Math.min(_active + 1, total - 1);
+                    $items.removeClass('active').eq(_active).addClass('active');
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    _active = Math.max(_active - 1, 0);
+                    $items.removeClass('active').eq(_active).addClass('active');
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (_active >= 0) $items.eq(_active).trigger('mousedown');
+                } else if (e.key === 'Escape') {
+                    $dd.removeClass('open');
+                }
+            });
+
+            $input.on('input', function () {
+                var q = $(this).val().trim();
+                toggleClear();
+
+                if (!q) {
+                    $hidden.val('');
+                    clearTimeout(_timer);
+                    _timer = setTimeout(function () { fetchItems(''); }, 100);
+                    if (typeof cfg.onSelect === 'function') cfg.onSelect(null);
+                    return;
+                }
+
+                clearTimeout(_timer);
+                _timer = setTimeout(function () { fetchItems(q); }, 280);
+            });
+
+            $clear.on('click', function () {
+                $input.val('');
+                $hidden.val('');
+                toggleClear();
+                if (typeof cfg.onSelect === 'function') cfg.onSelect(null);
+                $input.trigger('focus').focus();
+                openDropdown();
+            });
+
+            toggleClear();
+        };
+
+    })();
+
+    // ── Daftarkan field Asal Darah ──────────────────────────────────────────
+    registerSearchDropdown({
+        inputId    : 'search_asal_darah',
+        hiddenId   : 'asal_darah_id',
+        dropdownId : 'dd_asal_darah',
+        clearId    : 'clear_asal_darah',
+        ajaxUrl    : '{{ url('aftap/pengembalian_kantong/select2/asal-darah') }}',
+    });
+</script>
 <script>
 @php
     $tipeKantongJson = $tipe_kantong->map(fn($t) => ['id' => $t->id, 'nama' => $t->nama])->values();

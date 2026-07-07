@@ -13,8 +13,17 @@ return new class extends Migration
             $table->string('no_kembali', 20)->index()->comment('Format: KBYYMMxxxxxx');
             $table->date('tgl_kembali');
             $table->string('no_kantong', 100)->index();
+
+            // FK ke stok_kantong_penerimaan_detail.id (data stok fisik per-kantong
+            // hasil alur Penerimaan), BUKAN ke stok_kantong_masuk.
             $table->unsignedBigInteger('stok_kantong_id')->index()
-                  ->comment('FK ke stok_kantong_masuk.id');
+                  ->comment('FK ke stok_kantong_penerimaan_detail.id');
+
+            $table->foreignId('asal_darah_id')
+                ->nullable()
+                ->constrained('asal_darah')
+                ->nullOnDelete();
+
             $table->string('merk', 100)->nullable();
             $table->string('jenis', 100)->nullable();
             $table->string('tipe', 100)->nullable();
@@ -27,10 +36,6 @@ return new class extends Migration
 
             $table->index(['no_kembali', 'tgl_kembali']);
 
-            $table->foreign('stok_kantong_id')
-                  ->references('id')
-                  ->on('stok_kantong_masuk')
-                  ->onDelete('restrict');
         });
     }
 

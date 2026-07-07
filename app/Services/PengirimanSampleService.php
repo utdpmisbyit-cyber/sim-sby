@@ -15,6 +15,11 @@ use App\Models\PengirimanProduksi;
 class PengirimanSampleService
 {
     /**
+     * Nama tabel stok penerimaan (dipakai berulang, biar gampang diubah).
+     */
+    protected string $tableStokDetail = 'stok_kantong_penerimaan_detail';
+
+    /**
      * Generate no_fpd unik: FPD-YYMMDD-XXXX
      */
     public function generateNoFpd(): string
@@ -36,8 +41,7 @@ class PengirimanSampleService
         return $prefix . str_pad($urut, 4, '0', STR_PAD_LEFT);
     }
 
-
-        public function getKantongByScan(string $no_kantong): object
+    public function getKantongByScan(string $no_kantong): object
     {
         $data = DB::table('aftap as a')
             ->leftJoin('log_donor as ld', 'ld.id', '=', 'a.log_donor_id')
@@ -69,8 +73,22 @@ class PengirimanSampleService
             throw new \Exception("No. kantong [{$no_kantong}] tidak ditemukan.");
         }
 
+        // ── Pastikan kantong ini benar-benar sudah diterima gudang dan masih tersedia ──
+        $stok = DB::table($this->tableStokDetail)
+            ->where('no_kantong', $no_kantong)
+            ->first();
+
+        if (! $stok) {
+            throw new \Exception("Kantong [{$no_kantong}] belum tercatat diterima di stok penerimaan.");
+        }
+
+        if ($stok->status_kirim !== 'tersedia') {
+            throw new \Exception("Kantong [{$no_kantong}] sudah dikirim sebelumnya (status: {$stok->status_kirim}).");
+        }
+
         return $data;
     }
+
     /**
      * Ambil daftar dengan filter + pagination untuk tab riwayat.
      */
@@ -90,16 +108,48 @@ class PengirimanSampleService
 
     /**
      * Simpan header + detail pengiriman_sample dalam satu transaksi.
+     * Sekaligus menandai kantong terkait di stok_kantong_penerimaan_detail
+     * sebagai status_kirim = 'sample' supaya stok otomatis berkurang
+     * (tidak muncul lagi sebagai 'tersedia').
      */
     public function simpan(array $data): PengirimanSample
     {
         DB::beginTransaction();
 
         try {
+            $items = $data['items'] ?? [];
+
+            // ── Kumpulkan no_kantong yang dikirim ──
+            $noKantongList = collect($items)
+                ->pluck('no_kantong')
+                ->filter()
+                ->values();
+
+            if ($noKantongList->isNotEmpty()) {
+                // Lock baris terkait supaya aman dari race condition (dua user kirim bareng)
+                $stokRows = DB::table($this->tableStokDetail)
+                    ->whereIn('no_kantong', $noKantongList)
+                    ->lockForUpdate()
+                    ->get()
+                    ->keyBy('no_kantong');
+
+                foreach ($noKantongList as $noKantong) {
+                    $stok = $stokRows->get($noKantong);
+
+                    if (! $stok) {
+                        throw new \Exception("Kantong [{$noKantong}] belum tercatat diterima di stok penerimaan.");
+                    }
+
+                    if ($stok->status_kirim !== 'tersedia') {
+                        throw new \Exception("Kantong [{$noKantong}] sudah dikirim sebelumnya (status: {$stok->status_kirim}).");
+                    }
+                }
+            }
+
             $header = PengirimanSample::create([
                 'no_fpd'            => $data['no_fpd'],
                 'tanggal_fpd'       => $data['tanggal_fpd'],
-                'total'             => count($data['items'] ?? []),
+                'total'             => count($items),
                 'keterangan'        => $data['keterangan']        ?? null,
                 'type_kantong'      => $data['type_kantong']      ?? null,
                 'suhu'              => $data['suhu']              ?? null,
@@ -109,11 +159,13 @@ class PengirimanSampleService
                 'id_coolbox'        => $data['id_coolbox']        ?? null,
             ]);
 
-            foreach (($data['items'] ?? []) as $urut => $item) {
+            foreach ($items as $urut => $item) {
+                $noKantong = $item['no_kantong'] ?? null;
+
                 PengirimanSampleDetail::create([
                     'pengiriman_sample_id' => $header->id,
                     'urut'                 => $urut + 1,
-                    'no_kantong'           => $item['no_kantong']      ?? null,
+                    'no_kantong'           => $noKantong,
                     'jenis_kantong'        => $item['jenis_kantong']   ?? null,
                     'aftap_id'             => $item['aftap_id']        ?? null,
                     'tanggal_aftap'        => $item['tanggal_aftap']   ?? null,
@@ -132,13 +184,23 @@ class PengirimanSampleService
                     'jenis_donor'          => $item['jenis_donor']     ?? null,
                     // suhu coolbox per baris (fallback ke suhu header jika item tidak bawa nilai sendiri)
                     'suhu'                 => $item['suhu']            ?? $data['suhu'] ?? null,
-                    // ── BARU: suhu spesifik sample/kantong ini (diisi manual per baris di form) ──
+                    // ── suhu spesifik sample/kantong ini (diisi manual per baris di form) ──
                     'suhu_sample'          => $item['suhu_sample']     ?? null,
                     'id_logger'            => $item['id_logger']       ?? $data['id_logger'] ?? null,
                     'id_coolbox'           => $item['id_coolbox']      ?? $data['id_coolbox'] ?? null,
                     'asal_darah'           => $item['asal_darah']      ?? null,
                     'status'               => $item['status']           ?? 'pending',
                 ]);
+            }
+
+            // ── Tandai semua kantong yang dikirim sebagai status_kirim = 'sample' ──
+            if ($noKantongList->isNotEmpty()) {
+                DB::table($this->tableStokDetail)
+                    ->whereIn('no_kantong', $noKantongList)
+                    ->update([
+                        'status_kirim' => 'sample',
+                        'updated_at'   => now(),
+                    ]);
             }
 
             DB::commit();
@@ -154,7 +216,8 @@ class PengirimanSampleService
  * Kirim FPD ke serologi:
  *  1. Simpan ke pengiriman_serologi (header)
  *  2. Simpan ke pengiriman_serologi_detail (per kantong)
- *  3. Kurangi stok di penerimaan_kantong_detail (hapus baris no_kantong)
+ *  3. Update status stok di stok_kantong_penerimaan_detail jadi 'serologi'
+ *     (BUKAN dihapus lagi, supaya histori & laporan stok tetap akurat)
  *
  * @param  int   $pengirimanSampleId  ID record pengiriman_sample
  * @param  array $extra               Data tambahan: pengirim_id, penerima_id, dokumen
@@ -191,7 +254,7 @@ class PengirimanSampleService
             'dokumen'     => $sample->no_fpd,
         ]);
 
-        // ── 3. Salin detail ke serologi + kurangi stok ──────────────
+        // ── 3. Salin detail ke serologi + update status stok ────────
         foreach ($sample->detail as $det) {
 
             PengirimanSerologiDetail::create([
@@ -209,7 +272,14 @@ class PengirimanSampleService
                 'is_nat'                 => $sample->is_nat,
             ]);
 
-            PenerimaanKantongDetail::where('no_kantong', $det->no_kantong)->delete();
+            if ($det->no_kantong) {
+                DB::table($this->tableStokDetail)
+                    ->where('no_kantong', $det->no_kantong)
+                    ->update([
+                        'status_kirim' => 'serologi',
+                        'updated_at'   => now(),
+                    ]);
+            }
         }
 
         DB::commit();
@@ -239,6 +309,7 @@ class PengirimanSampleService
 
         return $header;
     }
+
     public function generateKodeProduksi(): string
     {
         $prefix = 'PRD-' . date('ymd') . '-';
@@ -246,9 +317,42 @@ class PengirimanSampleService
 
         return $prefix . str_pad($urut, 4, '0', STR_PAD_LEFT);
     }
+
+    /**
+     * Hapus pengiriman sample.
+     * Kantong yang statusnya masih 'sample' (belum lanjut ke serologi)
+     * dikembalikan ke 'tersedia' supaya bisa dikirim ulang.
+     * Kantong yang sudah lanjut ke serologi TIDAK direvert (data serologi
+     * sudah terlanjur jalan, jangan diutak-atik dari sini).
+     */
     public function hapus(PengirimanSample $header): void
     {
-        $header->delete();
+        DB::beginTransaction();
+
+        try {
+            $noKantongList = $header->detail()
+                ->pluck('no_kantong')
+                ->filter()
+                ->values();
+
+            if ($noKantongList->isNotEmpty()) {
+                DB::table($this->tableStokDetail)
+                    ->whereIn('no_kantong', $noKantongList)
+                    ->where('status_kirim', 'sample')
+                    ->update([
+                        'status_kirim' => 'tersedia',
+                        'updated_at'   => now(),
+                    ]);
+            }
+
+            $header->detail()->delete();
+            $header->delete();
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
     }
 
     /**

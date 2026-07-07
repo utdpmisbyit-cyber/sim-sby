@@ -15,7 +15,7 @@ class PengembalianKantong extends Model
     protected $keyType    = 'int';
 
     protected $fillable = [
-        'no_kembali', 'tgl_kembali', 'no_kantong', 'stok_kantong_id',
+        'no_kembali', 'tgl_kembali', 'no_kantong', 'stok_kantong_id','asal_darah_id', 
         'merk', 'jenis', 'tipe', 'ukuran', 'kondisi', 'keterangan', 'created_by',
     ];
 
@@ -31,5 +31,9 @@ class PengembalianKantong extends Model
     public function details()
     {
         return $this->hasMany(PengembalianKantongDetail::class, 'pengembalian_kantong_id');
+    }
+    public function asalDarah()
+    {
+        return $this->belongsTo(AsalDarah::class, 'asal_darah_id');
     }
 }

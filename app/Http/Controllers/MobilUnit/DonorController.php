@@ -54,7 +54,24 @@ class DonorController extends IoResourceController
         $request->validate($dataRequest->rules(), $dataRequest->messages());
         return parent::update($request, $id);
     }
+    public function show($id)
+{
+    $donor = $this->service->find($id);
 
+    if (!$donor) {
+        return response()->json(['error' => 'Donor tidak ditemukan'], 404);
+    }
+
+    $donor->umur = $donor->tanggal_lahir
+        ? \Carbon\Carbon::parse($donor->tanggal_lahir)->age
+        : null;
+
+    $donor->sudah_daftar_hari_ini = \App\Models\LogDonor::where('donor_id', $donor->id)
+        ->whereDate('created_at', now()->toDateString())
+        ->exists();
+
+    return response()->json($donor);
+}
     public function checkFpup(Request $request)
     {
         $request->validate([

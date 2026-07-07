@@ -20,7 +20,9 @@ class MenuService
 
             'color' => '#5e6cf7',
             'bg' => '#eef0fe',
-            'icon' => '<path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>',
+         'icon' => '
+        <path d="M19 3l2 2-2 2-1-1-3 3 1 1-2 2-1-1-6 6H5v-2l6-6-1-1 2-2 1 1 3-3-1-1 2-2z"/>
+        ',
         ],
         'unit' => [
             'route' => 'unit',
@@ -100,7 +102,9 @@ class MenuService
             'sub' => 'Transaksi, Bank darah & Rs',
             'color' => '#ef4444',
             'bg' => '#fee2e2',
-            'icon' => '<path d="M12 2C12 2 5 9 5 14a7 7 0 0 0 14 0c0-5-7-12-7-12z"/>',
+           'icon' => '
+            <path d="M19 8h-5V3h-4v5H5v4h5v5h4v-5h5z"/>
+            ',
         ],
 
         'referal' => [
@@ -110,9 +114,18 @@ class MenuService
             'color' => '#dc2626',
             'bg' => '#fef2f2',
             'icon' => '
-                <path d="M9 2h6v3a2 2 0 0 0 2 2v8a5 5 0 0 1-10 0V7a2 2 0 0 0 2-2V2z"/>
-                <path d="M11 4h2v2h-2z"/>
-            ',
+                <path d="M3 21h18V5H3v16zm6-14h6v2H9V7zm0 4h2v2H9v-2zm4 0h2v2h-2v-2zm-4 4h2v2H9v-2zm4 0h2v2h-2v-2z"/>
+                ',
+        ],
+        'apheresis' => [
+            'route' => 'apheresis',
+            'caption' => 'Apheresis',
+            'sub' => 'Apheresis, Donor Darah UTD',
+            'color' => '#dc2626',
+            'bg' => '#fef2f2',
+            'icon' => '
+                <path d="M9 2h6v3a2 2 0 002 2v7a5 5 0 11-10 0V7a2 2 0 002-2V2zm2 3h2V4h-2v1zm1 6a2 2 0 100 4 2 2 0 000-4z"/>
+                ',
         ],
     ];
    
@@ -183,17 +196,19 @@ class MenuService
         'dashboard' => ['route' => 'aftap', 'caption' => 'Dashboard'],
         'aftap' => ['route' => 'aftap.aftap.index', 'caption' => 'Aftap'],
         'Permintaan' => ['route' => '#.index', 'caption' => 'Permintaan', 'sub_menus' => [
-                'permintaan_kantong' => ['route' => 'aftap.permintaan_kantong.index', 'caption' => 'Permintaan Kantong'],
+            'permintaan_kantong' => ['route' => 'aftap.permintaan_kantong.index', 'caption' => 'Permintaan Kantong'],
                 // 'permintaan_cetak_ulang' => ['route' => 'gudang.permintaan_cetak_ulang.index', 'caption' => 'Permintaan Cetak Ulang'],
 
         ]],
-        'penerimaan_kantong' => ['route' => 'aftap.penerimaan.index', 'caption' => 'Penerimaan Kantong Darah'],
-        'persediaan_kantong' => ['route' => 'aftap.persediaan_kantong.index', 'caption' => 'Persediaan Kantong'],
-        'pengeluaran_kantong_mu' => ['route' => 'aftap.pengeluaran_mobile_unit.index', 'caption' => 'Pengeluaran Kantong Mu'],
-        'pengembalian_kantong' => ['route' => 'aftap.pengembalian_kantong.index', 'caption' => 'Pengembalian Kantong'],
+        'Kantong darah' => ['route' => '#.index', 'caption' => 'Kantong darah', 'sub_menus' => [
+            'penerimaan_kantong' => ['route' => 'aftap.penerimaan.index', 'caption' => 'Penerimaan Kantong Darah'],
+            'persediaan_kantong' => ['route' => 'aftap.persediaan_kantong.index', 'caption' => 'Persediaan Kantong'],
+            'pengeluaran_kantong_mu' => ['route' => 'aftap.pengeluaran_mobile_unit.index', 'caption' => 'Pengeluaran Kantong Mu'],
+            'pengembalian_kantong' => ['route' => 'aftap.pengembalian_kantong.index', 'caption' => 'Pengembalian Kantong'],
+            'penyisihan_kantong' => ['route' => 'aftap.penyisihan_kantong_aftap.index', 'caption' => 'Penyisihan Kantong'],  
+        ]],
         'pengiriman_sample' => ['route' => 'aftap.pengiriman_sample.index', 'caption' => 'Pengiriman Sample Sero & Produksi'],
         'riwayat_pengiriman_sample' => ['route' => 'aftap.riwayat_pengiriman_sample', 'caption' => 'Riwayat Pengiriman Sample'],
-
     ];
     protected static array $unit = [
         'unit' => ['route' => 'unit', 'caption' => 'Dashboard'],
@@ -202,9 +217,8 @@ class MenuService
         'pemeriksaan_kesehatan' => ['route' => 'unit.pemeriksaan_kesehatan.index', 'caption' => 'Pemeriksaan Kesehatan'],
         'pemeriksaan_hb' => ['route' => 'unit.pemeriksaan_hb.index', 'caption' => 'Hermatologi / Pra Lab'],
       
-        // 'pengeluaran_kantong_mu' => ['route' => 'unit.pengeluaran_kantong_mu.index', 'caption' => 'Pengeluaran Kantong MU'],
-        
     ];
+   
     protected static array $mobil_unit = [
         'mobil_unit' => ['route' => 'mobil_unit', 'caption' => 'Dashboard'],
         'pendaftaran' => ['route' => 'mobil_unit.pendaftaran_mobil.index', 'caption' => 'Pendaftaran Mu'],
@@ -224,8 +238,7 @@ class MenuService
         'rencana_produksi' => ['route' => 'kantong_darah.rencana_produksi.index', 'caption' => 'Rencana Produksi'],
         'produksi_rilis' => ['route' => 'kantong_darah.produksi_rilis.index', 'caption' => 'Produksi Rilis'],
         'verifikasi_produksi' => ['route' => 'kantong_darah.verifikasi_produksi.index', 'caption' => 'Verifikasi Produksi'],
-        
-    
+           
     ];
 
    
@@ -236,8 +249,6 @@ class MenuService
         'kirim_litbang' => ['route' => 'serologi.kirim_litbang.index', 'caption' => 'Kirim Litbang'],
         'konfirmasi_litbang' => ['route' => 'serologi.konfirmasi_litbang.index', 'caption' => 'Konfirmasi Litbang'],
         'pengiriman_darah_prolis' => ['route' => 'produksi.pengiriman_darah_prolis.index', 'caption' => 'Pengiriman Darah Prolis'],
-
-    
     ];
 
     protected static array $misc = [
@@ -269,6 +280,10 @@ class MenuService
             'purchase_order' => ['route' => 'inventory.purchase_order.index', 'caption' => 'Purchase Order'],
             'QC_barang_masuk' => ['route' => 'inventory.QC_barang_masuk.index', 'caption' => 'QC Barang Masuk'],
             'return_supplier' => ['route' => 'inventory.return_supplier.index', 'caption' => 'Retur Supplier'],
+        ]],
+         'pengembalian' => ['route' => '#.index', 'caption' => 'Pengembalian', 'sub_menus' => [
+            'konfirmasi_pengembalian' => ['route' => 'inventory.konfirmasi_pengembalian_barang.index', 'caption' => 'Pengembalian Barang'],
+         
         ]],
         'pengeluaran' => ['route' => '#.index', 'caption' => 'Pengeluaran', 'sub_menus' => [
             'permintaan_barang_logistik' => ['route' => 'inventory.permintaan_barang_logistik.index', 'caption' => 'Verifikasi Permintaan Barang'],
@@ -343,6 +358,19 @@ class MenuService
       
     ];
 
+     protected static array $apheresis = [
+        'apheresis' => ['route' => 'apheresis', 'caption' => 'Dashboard'],
+        'donor' => ['route' => 'apheresis.donor.index', 'caption' => 'Donor'],
+        'pendaftaran' => ['route' => 'apheresis.pendaftaran.index', 'caption' => 'Pendaftaran'],
+        'pemeriksaan_kesehatan' => ['route' => 'apheresis.pemeriksaan_kesehatan.index', 'caption' => 'Pemeriksaan Kesehatan'],
+        'pemeriksaan_hb' => ['route' => 'apheresis.pemeriksaan_hb.index', 'caption' => 'Hermatologi / Pra Lab'],
+        'Transaksi & informasi' => ['route' => '#.index', 'caption' => 'Transaksi & informasi', 'sub_menus' => [
+            'sampling_donor' => ['route' => 'apheresis.sampling_pra_donor.index', 'caption' => 'Sampling Pra Donor'],
+            'lembar_kerja' => ['route' => 'apheresis.pengambilan_darah.index', 'caption' => 'Lembar Kerja'],
+            
+         ]],
+    ];
+
     public function listMenu($module): array
     {
         return match ($module) {
@@ -359,6 +387,8 @@ class MenuService
             'penyimpanan'=> self::$penyimpanan,
             'referal' => self::$referal,
             'mobil_unit'  => self::$mobil_unit,
+            'apheresis'  => self::$apheresis,
+
             default => [],
         };
     }
